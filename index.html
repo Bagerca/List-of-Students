@@ -4,47 +4,59 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Журнал посещаемости</title>
+    
+    <!-- Подключаем современный шрифт -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
     <link rel="stylesheet" href="style.css">
-    <!-- Подключаем библиотеку для создания скриншотов -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    
+    <!-- Библиотека для скриншотов -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
+    <script src="script.js" defer></script>
 </head>
 <body>
 
-    <header>
-        <div class="header-controls">
-            <label for="date-picker">Дата:</label>
-            <input type="date" id="date-picker">
-        </div>
-        <h1>Журнал посещаемости</h1>
-        <div class="header-controls">
-            <button id="settings-btn">⚙️ Настройки</button>
-        </div>
-    </header>
+    <div class="container">
+        <header>
+            <h1>Журнал посещаемости</h1>
+            <div class="header-controls">
+                <input type="date" id="date-picker">
+                <button id="settings-btn" title="Настройки списка учеников">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                </button>
+            </div>
+        </header>
 
-    <main id="attendance-sheet">
-        <div id="student-list-container">
-            <!-- Список учеников будет сгенерирован здесь с помощью JavaScript -->
-        </div>
-    </main>
+        <main id="attendance-sheet">
+            <div class="sheet-header">
+                <span id="sheet-date-display">16 ноября 2025</span>
+                <div id="stats"></div>
+            </div>
+            <div id="student-list-container">
+                <!-- Список учеников будет сгенерирован здесь -->
+            </div>
+        </main>
 
-    <footer>
-        <div id="stats">
-            <!-- Статистика будет обновляться здесь -->
-        </div>
-        <button id="download-btn">🖼️ Скачать картинку дня</button>
-    </footer>
+        <footer>
+            <button id="download-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                <span>Скачать отчет</span>
+            </button>
+        </footer>
+    </div>
 
     <!-- Модальное окно для настроек -->
     <div id="settings-modal" class="modal">
         <div class="modal-content">
-            <span class="close-btn">&times;</span>
-            <h2>Настройки</h2>
-            <p>Введите список учеников (один ученик на строку):</p>
-            <textarea id="student-list-editor" rows="15"></textarea>
-            <button id="save-settings-btn">Сохранить</button>
+            <button class="close-btn">&times;</button>
+            <h2>Редактор списка</h2>
+            <p>Введите имена учеников, каждого с новой строки. Изменения сохраняются автоматически.</p>
+            <textarea id="student-list-editor" rows="15" placeholder="Иван Петров&#10;Мария Сидорова..."></textarea>
+            <button id="save-settings-btn" class="primary-button">Сохранить и закрыть</button>
         </div>
     </div>
 
-    <script src="script.js"></script>
 </body>
 </html>
