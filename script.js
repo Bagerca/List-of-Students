@@ -56,8 +56,8 @@ const themeToggleBtn = document.getElementById('theme-toggle-btn');
 const chartCanvas = document.getElementById('attendance-chart');
 const chartStartDate = document.getElementById('chart-start-date');
 const chartEndDate = document.getElementById('chart-end-date');
-const prevDayBtn = document.getElementById('prev-day-btn'); // <-- Новая строка
-const nextDayBtn = document.getElementById('next-day-btn'); // <-- Новая строка
+const prevDayBtn = document.getElementById('prev-day-btn');
+const nextDayBtn = document.getElementById('next-day-btn');
 
 // --- 4. ОСНОВНЫЕ ФУНКЦИИ ---
 
@@ -193,11 +193,19 @@ function updateLineNumbers() {
     lineNumbers.innerHTML = Array.from({ length: lineCount }, (_, i) => `<span>${i + 1}</span>`).join('');
 }
 
-// Новая функция для изменения даты
+// ИСПРАВЛЕННАЯ ФУНКЦИЯ
 function changeDate(offset) {
+    // Создаем дату, явно указывая, что это локальное время, чтобы избежать путаницы с UTC
     const currentDateObj = new Date(currentDate + 'T00:00:00');
+    // Безопасно изменяем день
     currentDateObj.setDate(currentDateObj.getDate() + offset);
-    currentDate = currentDateObj.toISOString().split('T')[0];
+
+    // Вручную форматируем дату в YYYY-MM-DD, чтобы избежать проблем с часовыми поясами
+    const year = currentDateObj.getFullYear();
+    const month = String(currentDateObj.getMonth() + 1).padStart(2, '0'); // Месяцы 0-индексированы
+    const day = String(currentDateObj.getDate()).padStart(2, '0');
+    
+    currentDate = `${year}-${month}-${day}`;
     datePicker.value = currentDate;
     render();
 }
@@ -225,8 +233,8 @@ function handleStatusClick(e) {
 
 function setupEventListeners() {
     datePicker.addEventListener('change', e => { currentDate = e.target.value; render(); });
-    prevDayBtn.addEventListener('click', () => changeDate(-1)); // <-- Новая строка
-    nextDayBtn.addEventListener('click', () => changeDate(1));   // <-- Новая строка
+    prevDayBtn.addEventListener('click', () => changeDate(-1));
+    nextDayBtn.addEventListener('click', () => changeDate(1));
     studentListContainer.addEventListener('click', handleStatusClick);
     studentListEditor.addEventListener('input', updateLineNumbers);
     themeToggleBtn.addEventListener('click', toggleTheme);
