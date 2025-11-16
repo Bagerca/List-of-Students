@@ -21,6 +21,7 @@ const isAdmin = urlParams.get('admin') === 'true';
 let appData = { students: [], attendanceData: {} };
 let currentDate = new Date().toISOString().split('T')[0];
 let attendanceChart = null;
+let studentChart = null; // Для диаграммы студента
 
 const statuses = {
     present: { text: 'Присутствовал' }, late: { text: 'Опоздал' }, absent: { text: 'Отсутствовал' },
@@ -38,6 +39,8 @@ const moonIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" str
 
 // --- 3. ПОЛУЧЕНИЕ ЭЛЕМЕНТОВ DOM ---
 const datePicker = document.getElementById('date-picker');
+const prevDayBtn = document.getElementById('prev-day-btn');
+const nextDayBtn = document.getElementById('next-day-btn');
 const sheetDateDisplay = document.getElementById('sheet-date-display');
 const studentListContainer = document.getElementById('student-list-container');
 const downloadBtn = document.getElementById('download-btn');
@@ -56,8 +59,16 @@ const themeToggleBtn = document.getElementById('theme-toggle-btn');
 const chartCanvas = document.getElementById('attendance-chart');
 const chartStartDate = document.getElementById('chart-start-date');
 const chartEndDate = document.getElementById('chart-end-date');
-const prevDayBtn = document.getElementById('prev-day-btn');
-const nextDayBtn = document.getElementById('next-day-btn');
+
+// Элементы DOM для модального окна статистики
+const studentStatsModal = document.getElementById('student-stats-modal');
+const studentStatsName = document.getElementById('student-stats-name');
+const studentStatsList = document.getElementById('student-stats-list');
+const studentChartCanvas = document.getElementById('student-chart');
+const statsStartDate = document.getElementById('stats-start-date');
+const statsEndDate = document.getElementById('stats-end-date');
+const downloadStudentChartBtn = document.getElementById('download-student-chart-btn');
+const studentStatsModalCloseBtn = studentStatsModal.querySelector('.close-btn');
 
 // --- 4. ОСНОВНЫЕ ФУНКЦИИ ---
 
@@ -75,7 +86,7 @@ function render() {
             row.className = 'student-row';
             row.dataset.name = name;
             const currentDayData = attendanceData[currentDate] || {};
-            row.innerHTML = `<div class="student-name">${name}</div><div class="status-buttons">
+            row.innerHTML = `<div class="student-name clickable">${name}</div><div class="status-buttons">
                 ${Object.keys(statuses).map(key => `
                     <button class="status-${key} ${currentDayData[name] === key ? 'active' : ''}" data-status="${key}" title="${statuses[key].text}">
                         ${statusIcons[key]}
@@ -101,7 +112,7 @@ function updateStats() {
     statsContainer.innerHTML = `Присутствует: <strong>${presentCount}/${total}</strong> &nbsp;·&nbsp; Опоздало: <strong>${lateCount}</strong> &nbsp;·&nbsp; Отсутствует: <strong>${absentCount}</strong>`;
 }
 
-// --- 5. ФУНКЦИИ ТЕМЫ И ДИАГРАММЫ ---
+// --- 5. ФУНКЦИИ ТЕМЫ И ДИАГРАММ ---
 
 function applyTheme(theme) {
     document.body.classList.toggle('theme-dark', theme === 'dark');
@@ -186,6 +197,96 @@ function renderChart() {
     });
 }
 
+// --- НОВЫЕ ФУНКЦИИ ДЛЯ СТАТИСТИКИ СТУДЕНТА ---
+function renderStudentChart(stats) {
+    if (studentChart) {
+        studentChart.destroy();
+    }
+    const statusColors = { present: '#198754', late: '#ffc107', absent: '#dc3545', sick: '#0dcaf0', excused: '#6c757d' };
+    const chartData = {
+        labels: [],
+        datasets: [{
+            data: [],
+            backgroundColor: [],
+        }]
+    };
+
+    for (const status in stats) {
+        if (stats[status] > 0) {
+            chartData.labels.push(statuses[status].text);
+            chartData.datasets[0].data.push(stats[status]);
+            chartData.datasets[0].backgroundColor.push(statusColors[status]);
+        }
+    }
+
+    const isDark = document.body.classList.contains('theme-dark');
+    const textColor = isDark ? '#e4e6eb' : '#606770';
+
+    studentChart = new Chart(studentChartCanvas, {
+        type: 'doughnut',
+        data: chartData,
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        color: textColor,
+                        padding: 10
+                    }
+                }
+            }
+        }
+    });
+}
+
+function updateStudentStats() {
+    const studentName = studentStatsModal.dataset.currentStudent;
+    if (!studentName) return;
+
+    const startDate = statsStartDate.value;
+    const endDate = statsEndDate.value;
+
+    const stats = { present: 0, late: 0, absent: 0, sick: 0, excused: 0 };
+    Object.keys(appData.attendanceData).forEach(date => {
+        if (date >= startDate && date <= endDate) {
+            const dayData = appData.attendanceData[date];
+            const status = dayData[studentName];
+            if (status && stats.hasOwnProperty(status)) {
+                stats[status]++;
+            }
+        }
+    });
+
+    const totalAbsences = stats.absent + stats.sick + stats.excused;
+    studentStatsList.innerHTML = `
+        <li>Присутствовал: <strong>${stats.present} дн.</strong></li>
+        <li>Опоздал: <strong>${stats.late} раз</strong></li>
+        <li>Отсутствовал (всего): <strong>${totalAbsences} дн.</strong></li>
+        <li style="padding-left: 20px;">- По болезни: <strong>${stats.sick} дн.</strong></li>
+        <li style="padding-left: 20px;">- По ув. причине: <strong>${stats.excused} дн.</strong></li>
+        <li style="padding-left: 20px;">- Без причины: <strong>${stats.absent} дн.</strong></li>
+    `;
+
+    renderStudentChart(stats);
+}
+
+function openStudentStatsModal(studentName) {
+    studentStatsName.textContent = `Статистика: ${studentName}`;
+    studentStatsModal.dataset.currentStudent = studentName;
+
+    // Устанавливаем период по умолчанию (последние 30 дней)
+    const end = new Date();
+    const start = new Date();
+    start.setDate(end.getDate() - 30);
+    statsEndDate.value = end.toISOString().split('T')[0];
+    statsStartDate.value = start.toISOString().split('T')[0];
+    
+    updateStudentStats();
+    studentStatsModal.classList.add('show');
+}
+
 // --- 6. ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ---
 function formatDate(d) { return new Date(d + 'T00:00:00').toLocaleDateString('ru-RU', { year: 'numeric', month: 'long', day: 'numeric' }); }
 function updateLineNumbers() {
@@ -193,18 +294,12 @@ function updateLineNumbers() {
     lineNumbers.innerHTML = Array.from({ length: lineCount }, (_, i) => `<span>${i + 1}</span>`).join('');
 }
 
-// ИСПРАВЛЕННАЯ ФУНКЦИЯ
 function changeDate(offset) {
-    // Создаем дату, явно указывая, что это локальное время, чтобы избежать путаницы с UTC
     const currentDateObj = new Date(currentDate + 'T00:00:00');
-    // Безопасно изменяем день
     currentDateObj.setDate(currentDateObj.getDate() + offset);
-
-    // Вручную форматируем дату в YYYY-MM-DD, чтобы избежать проблем с часовыми поясами
     const year = currentDateObj.getFullYear();
-    const month = String(currentDateObj.getMonth() + 1).padStart(2, '0'); // Месяцы 0-индексированы
+    const month = String(currentDateObj.getMonth() + 1).padStart(2, '0');
     const day = String(currentDateObj.getDate()).padStart(2, '0');
-    
     currentDate = `${year}-${month}-${day}`;
     datePicker.value = currentDate;
     render();
@@ -235,7 +330,19 @@ function setupEventListeners() {
     datePicker.addEventListener('change', e => { currentDate = e.target.value; render(); });
     prevDayBtn.addEventListener('click', () => changeDate(-1));
     nextDayBtn.addEventListener('click', () => changeDate(1));
-    studentListContainer.addEventListener('click', handleStatusClick);
+    
+    studentListContainer.addEventListener('click', e => {
+        const statusButton = e.target.closest('button[data-status]');
+        if (statusButton) {
+            handleStatusClick(e);
+            return;
+        }
+        if (e.target.classList.contains('student-name')) {
+            const studentName = e.target.closest('.student-row').dataset.name;
+            openStudentStatsModal(studentName);
+        }
+    });
+
     studentListEditor.addEventListener('input', updateLineNumbers);
     themeToggleBtn.addEventListener('click', toggleTheme);
     chartStartDate.addEventListener('change', renderChart);
@@ -310,6 +417,20 @@ function setupEventListeners() {
         reader.readAsText(file);
         importFileInput.value = '';
     };
+
+    // Обработчики для модального окна статистики
+    const closeStudentModal = () => studentStatsModal.classList.remove('show');
+    studentStatsModalCloseBtn.onclick = closeStudentModal;
+    studentStatsModal.onclick = e => { if (e.target === studentStatsModal) closeStudentModal(); };
+    statsStartDate.addEventListener('change', updateStudentStats);
+    statsEndDate.addEventListener('change', updateStudentStats);
+    downloadStudentChartBtn.addEventListener('click', () => {
+        const studentName = studentStatsModal.dataset.currentStudent.replace(' ', '_');
+        const link = document.createElement('a');
+        link.href = studentChart.toBase64Image();
+        link.download = `stats_${studentName}_${statsStartDate.value}_${statsEndDate.value}.png`;
+        link.click();
+    });
 }
 
 // --- 8. ИНИЦИАЛИЗАЦИЯ ПРИЛОЖЕНИЯ ---
