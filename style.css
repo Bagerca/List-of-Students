@@ -132,3 +132,57 @@ footer { display: flex; justify-content: center; gap: 12px; margin-top: 24px; }
     footer { flex-direction: column; gap: 10px; }
     footer button { width: 100%; justify-content: center; }
 }
+
+/* Делаем имя студента кликабельным */
+.student-name.clickable {
+    cursor: pointer;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+.student-name.clickable:hover {
+    color: var(--accent-color);
+}
+
+/* Стили для макета в модальном окне статистики */
+.student-stats-layout {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    margin-top: 16px;
+}
+
+.student-chart-container {
+    width: 180px;
+    height: 180px;
+    flex-shrink: 0;
+}
+
+#student-stats-list {
+    list-style: none;
+    padding: 0;
+    font-size: 1rem;
+    flex-grow: 1;
+}
+
+#student-stats-list li {
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+}
+#student-stats-list li:last-child {
+    border-bottom: none;
+}
+#student-stats-list strong {
+    font-weight: 600;
+}
+
+
+/* Адаптация для мобильных устройств */
+@media (max-width: 600px) {
+    /* ... существующие медиа-запросы ... */
+    
+    .student-stats-layout {
+        flex-direction: column;
+    }
+}
