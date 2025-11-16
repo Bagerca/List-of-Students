@@ -115,6 +115,9 @@ function updateLineNumbers() {
 
 // --- 6. ОБРАБОТЧИКИ СОБЫТИЙ ---
 
+// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+// !!! ВОТ ЗДЕСЬ НАХОДИТСЯ ИСПРАВЛЕННАЯ ФУНКЦИЯ !!!
+// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 function handleStatusClick(e) {
     if (!isAdmin) return;
     const button = e.target.closest('button[data-status]');
@@ -124,16 +127,29 @@ function handleStatusClick(e) {
     const name = row.dataset.name;
     const status = button.dataset.status;
 
-    if (!appData.attendanceData[currentDate]) appData.attendanceData[currentDate] = {};
+    // Инициализируем объект для текущего дня, если его нет
+    if (!appData.attendanceData[currentDate]) {
+        appData.attendanceData[currentDate] = {};
+    }
     const currentStatus = appData.attendanceData[currentDate][name];
-
+    
+    // --- Шаг 1: Мгновенное обновление UI ---
     if (currentStatus === status) {
+        // Если статус уже активен, снимаем его
+        button.classList.remove('active');
         delete appData.attendanceData[currentDate][name];
     } else {
+        // Иначе, делаем новую кнопку активной, а остальные - нет
+        row.querySelectorAll('.status-buttons button').forEach(btn => btn.classList.remove('active'));
+        button.classList.add('active');
         appData.attendanceData[currentDate][name] = status;
     }
+
+    // --- Шаг 2: Обновляем статистику и сохраняем данные в Firebase ---
+    updateStats();
     saveData();
 }
+
 
 function setupEventListeners() {
     datePicker.addEventListener('change', e => { currentDate = e.target.value; render(); });
@@ -152,7 +168,7 @@ function setupEventListeners() {
     copyBtn.addEventListener('click', () => {
         const dayData = appData.attendanceData[currentDate] || {};
         let reportText = `Отчет о посещаемости за ${formatDate(currentDate)}:\n\n`;
-        appData.students.forEach(name => {
+        (appData.students || []).forEach(name => {
             const statusKey = dayData[name];
             const statusText = statusKey ? statuses[statusKey].text : 'Не отмечен';
             reportText += `${name}: ${statusText}\n`;
@@ -167,7 +183,7 @@ function setupEventListeners() {
 
     const closeModal = () => settingsModal.classList.remove('show');
     settingsBtn.onclick = () => {
-        studentListEditor.value = appData.students.join('\n');
+        studentListEditor.value = (appData.students || []).join('\n');
         updateLineNumbers();
         settingsModal.classList.add('show');
     };
@@ -225,11 +241,10 @@ function init() {
         if (data) {
             appData = data;
         } else if (isAdmin) {
-            // Если в базе пусто, админ может создать первую запись
             saveData();
         }
         render();
-    }, { onlyOnce: false });
+    });
 
     datePicker.value = currentDate;
     setupEventListeners();
