@@ -37,8 +37,7 @@ const statusIcons = {
 const sunIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>`;
 const moonIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>`;
 
-// --- 3. ОБЪЯВЛЕНИЕ ПЕРЕМЕННЫХ ДЛЯ DOM-ЭЛЕМЕНТОВ ---
-// Мы их найдем и присвоим в функции cacheDOMElements
+// Объявляем переменные здесь, но находим элементы после загрузки DOM
 let datePicker, prevDayBtn, nextDayBtn, sheetDateDisplay, studentListContainer, 
     downloadBtn, copyBtn, statsContainer, settingsBtn, themeToggleBtn, 
     chartCanvas, chartStartDate, chartEndDate, settingsModal, closeModalBtn, 
@@ -47,8 +46,7 @@ let datePicker, prevDayBtn, nextDayBtn, sheetDateDisplay, studentListContainer,
     studentStatsList, studentChartCanvas, statsStartDate, statsEndDate, 
     downloadStudentChartBtn, studentStatsModalCloseBtn;
 
-// --- 4. ФУНКЦИИ ПРИЛОЖЕНИЯ ---
-
+// --- 4. ФУНКЦИИ ПРИЛОЖЕНИЯ (без изменений) ---
 function saveData() { if (isAdmin) set(ref(database, 'journalData'), appData); }
 
 function render() {
@@ -89,10 +87,9 @@ function updateStats() {
     statsContainer.innerHTML = `Присутствует: <strong>${presentCount}/${total}</strong> &nbsp;·&nbsp; Опоздало: <strong>${lateCount}</strong> &nbsp;·&nbsp; Отсутствует: <strong>${absentCount}</strong>`;
 }
 
-// ... все остальные функции (applyTheme, toggleTheme, prepareChartData, renderChart, и т.д.) без изменений ...
 function applyTheme(theme) {
     document.body.classList.toggle('theme-dark', theme === 'dark');
-    themeToggleBtn.innerHTML = theme === 'dark' ? sunIcon : moonIcon;
+    if(themeToggleBtn) themeToggleBtn.innerHTML = theme === 'dark' ? sunIcon : moonIcon;
 }
 
 function toggleTheme() {
@@ -108,7 +105,6 @@ function prepareChartData(startDate, endDate) {
     Object.keys(statuses).forEach(key => statusCounts[key] = []);
     const { attendanceData = {} } = appData;
     const dates = Object.keys(attendanceData).sort();
-
     dates.forEach(date => {
         if (date >= startDate && date <= endDate) {
             labels.push(formatDate(date).slice(0, -8));
@@ -121,14 +117,15 @@ function prepareChartData(startDate, endDate) {
             Object.keys(statuses).forEach(key => statusCounts[key].push(dailyCounts[key]));
         }
     });
-
     const statusColors = { present: '#198754', late: '#ffc107', absent: '#dc3545', sick: '#0dcaf0', excused: '#6c757d' };
-    const datasets = Object.keys(statuses).map(key => ({
-        label: statuses[key].text,
-        data: statusCounts[key],
-        backgroundColor: statusColors[key],
-    }));
-    return { labels, datasets };
+    return {
+        labels,
+        datasets: Object.keys(statuses).map(key => ({
+            label: statuses[key].text,
+            data: statusCounts[key],
+            backgroundColor: statusColors[key],
+        }))
+    };
 }
 
 function hexToRgba(hex, alpha = 0.2) {
@@ -140,13 +137,11 @@ function hexToRgba(hex, alpha = 0.2) {
 
 function renderChart() {
     if (attendanceChart) attendanceChart.destroy();
-    if (!chartStartDate.value || !chartEndDate.value) return;
-
+    if (!chartStartDate || !chartStartDate.value || !chartEndDate.value) return;
     const chartData = prepareChartData(chartStartDate.value, chartEndDate.value);
     const isDark = document.body.classList.contains('theme-dark');
     const gridColor = isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
     const textColor = isDark ? '#e4e6eb' : '#606770';
-
     attendanceChart = new Chart(chartCanvas, {
         type: 'line',
         data: {
@@ -174,18 +169,9 @@ function renderChart() {
 }
 
 function renderStudentChart(stats) {
-    if (studentChart) {
-        studentChart.destroy();
-    }
+    if (studentChart) studentChart.destroy();
     const statusColors = { present: '#198754', late: '#ffc107', absent: '#dc3545', sick: '#0dcaf0', excused: '#6c757d' };
-    const chartData = {
-        labels: [],
-        datasets: [{
-            data: [],
-            backgroundColor: [],
-        }]
-    };
-
+    const chartData = { labels: [], datasets: [{ data: [], backgroundColor: [] }] };
     for (const status in stats) {
         if (stats[status] > 0) {
             chartData.labels.push(statuses[status].text);
@@ -193,25 +179,15 @@ function renderStudentChart(stats) {
             chartData.datasets[0].backgroundColor.push(statusColors[status]);
         }
     }
-
     const isDark = document.body.classList.contains('theme-dark');
     const textColor = isDark ? '#e4e6eb' : '#606770';
-
     studentChart = new Chart(studentChartCanvas, {
         type: 'doughnut',
         data: chartData,
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    position: 'bottom',
-                    labels: {
-                        color: textColor,
-                        padding: 10
-                    }
-                }
-            }
+            plugins: { legend: { position: 'bottom', labels: { color: textColor, padding: 10 } } }
         }
     });
 }
@@ -219,11 +195,9 @@ function renderStudentChart(stats) {
 function updateStudentStats() {
     const studentName = studentStatsModal.dataset.currentStudent;
     if (!studentName) return;
-
     const startDate = statsStartDate.value;
     const endDate = statsEndDate.value;
     const attendanceData = appData.attendanceData || {};
-
     const stats = { present: 0, late: 0, absent: 0, sick: 0, excused: 0 };
     Object.keys(attendanceData).forEach(date => {
         if (date >= startDate && date <= endDate) {
@@ -234,7 +208,6 @@ function updateStudentStats() {
             }
         }
     });
-
     const totalAbsences = stats.absent + stats.sick + stats.excused;
     studentStatsList.innerHTML = `
         <li>Присутствовал: <strong>${stats.present} дн.</strong></li>
@@ -244,30 +217,22 @@ function updateStudentStats() {
         <li style="padding-left: 20px;">- По ув. причине: <strong>${stats.excused} дн.</strong></li>
         <li style="padding-left: 20px;">- Без причины: <strong>${stats.absent} дн.</strong></li>
     `;
-
     renderStudentChart(stats);
 }
 
 function openStudentStatsModal(studentName) {
     studentStatsName.textContent = `Статистика: ${studentName}`;
     studentStatsModal.dataset.currentStudent = studentName;
-
     const end = new Date();
     const start = new Date();
     start.setDate(end.getDate() - 30);
     statsEndDate.value = end.toISOString().split('T')[0];
     statsStartDate.value = start.toISOString().split('T')[0];
-    
     updateStudentStats();
     studentStatsModal.classList.add('show');
 }
 
 function formatDate(d) { return new Date(d + 'T00:00:00').toLocaleDateString('ru-RU', { year: 'numeric', month: 'long', day: 'numeric' }); }
-
-function updateLineNumbers() {
-    const lineCount = studentListEditor.value.split('\n').length;
-    lineNumbers.innerHTML = Array.from({ length: lineCount }, (_, i) => `<span>${i + 1}</span>`).join('');
-}
 
 function changeDate(offset) {
     const currentDateObj = new Date(currentDate + 'T00:00:00');
@@ -287,11 +252,9 @@ function handleStatusClick(e) {
     const row = button.closest('.student-row');
     const name = row.dataset.name;
     const status = button.dataset.status;
-
     if (!appData.attendanceData) appData.attendanceData = {};
     if (!appData.attendanceData[currentDate]) appData.attendanceData[currentDate] = {};
     const currentStatus = appData.attendanceData[currentDate][name];
-
     if (currentStatus === status) {
         delete appData.attendanceData[currentDate][name];
     } else {
@@ -316,16 +279,6 @@ function cacheDOMElements() {
     chartCanvas = document.getElementById('attendance-chart');
     chartStartDate = document.getElementById('chart-start-date');
     chartEndDate = document.getElementById('chart-end-date');
-
-    settingsModal = document.getElementById('settings-modal');
-    closeModalBtn = settingsModal.querySelector('.close-btn');
-    saveStudentsBtn = document.getElementById('save-students-btn');
-    studentListEditor = document.getElementById('student-list-editor');
-    lineNumbers = document.querySelector('.line-numbers');
-    exportDataBtn = document.getElementById('export-data-btn');
-    importDataBtn = document.getElementById('import-data-btn');
-    importFileInput = document.getElementById('import-file-input');
-
     studentStatsModal = document.getElementById('student-stats-modal');
     studentStatsName = document.getElementById('student-stats-name');
     studentStatsList = document.getElementById('student-stats-list');
@@ -334,31 +287,30 @@ function cacheDOMElements() {
     statsEndDate = document.getElementById('stats-end-date');
     downloadStudentChartBtn = document.getElementById('download-student-chart-btn');
     studentStatsModalCloseBtn = studentStatsModal.querySelector('.close-btn');
+
+    // Находим элементы, которые есть только у админа
+    if (isAdmin) {
+        settingsModal = document.getElementById('settings-modal');
+        closeModalBtn = settingsModal.querySelector('.close-btn');
+        saveStudentsBtn = document.getElementById('save-students-btn');
+        studentListEditor = document.getElementById('student-list-editor');
+        lineNumbers = settingsModal.querySelector('.line-numbers');
+        exportDataBtn = document.getElementById('export-data-btn');
+        importDataBtn = document.getElementById('import-data-btn');
+        importFileInput = document.getElementById('import-file-input');
+    }
 }
 
+// ===== ГЛАВНОЕ ИЗМЕНЕНИЕ ЗДЕСЬ =====
 function setupEventListeners() {
-    datePicker.addEventListener('change', e => { currentDate = e.target.value; render(); });
-    prevDayBtn.addEventListener('click', () => changeDate(-1));
-    nextDayBtn.addEventListener('click', () => changeDate(1));
-    
-    studentListContainer.addEventListener('click', e => {
-        const statusButton = e.target.closest('button[data-status]');
-        if (statusButton) {
-            handleStatusClick(e);
-            return;
-        }
-        if (e.target.classList.contains('student-name')) {
-            const studentName = e.target.closest('.student-row').dataset.name;
-            openStudentStatsModal(studentName);
-        }
-    });
-
-    studentListEditor.addEventListener('input', updateLineNumbers);
-    themeToggleBtn.addEventListener('click', toggleTheme);
-    chartStartDate.addEventListener('change', renderChart);
-    chartEndDate.addEventListener('change', renderChart);
-    
-    downloadBtn.addEventListener('click', () => {
+    // --- ОБЩИЕ ОБРАБОТЧИКИ (для всех) ---
+    if (datePicker) datePicker.addEventListener('change', e => { currentDate = e.target.value; render(); });
+    if (prevDayBtn) prevDayBtn.addEventListener('click', () => changeDate(-1));
+    if (nextDayBtn) nextDayBtn.addEventListener('click', () => changeDate(1));
+    if (themeToggleBtn) themeToggleBtn.addEventListener('click', toggleTheme);
+    if (chartStartDate) chartStartDate.addEventListener('change', renderChart);
+    if (chartEndDate) chartEndDate.addEventListener('change', renderChart);
+    if (downloadBtn) downloadBtn.addEventListener('click', () => {
         html2canvas(document.getElementById('attendance-sheet'), { scale: 2 }).then(canvas => {
             const link = document.createElement('a');
             link.download = `attendance-${currentDate}.png`;
@@ -366,8 +318,7 @@ function setupEventListeners() {
             link.click();
         });
     });
-
-    copyBtn.addEventListener('click', () => {
+    if (copyBtn) copyBtn.addEventListener('click', () => {
         const dayData = appData.attendanceData[currentDate] || {};
         let reportText = `Отчет о посещаемости за ${formatDate(currentDate)}:\n\n`;
         (appData.students || []).forEach(name => {
@@ -383,75 +334,92 @@ function setupEventListeners() {
         });
     });
 
-    // Обработчики для модального окна НАСТРОЕК
-    settingsBtn.onclick = () => {
-        studentListEditor.value = (appData.students || []).join('\n');
-        updateLineNumbers();
-        settingsModal.classList.add('show');
-    };
-    closeModalBtn.onclick = () => settingsModal.classList.remove('show');
-    settingsModal.onclick = e => { if (e.target === settingsModal) settingsModal.classList.remove('show'); };
-    
-    // Обработчики для модального окна СТАТИСТИКИ СТУДЕНТА
-    studentStatsModalCloseBtn.onclick = () => studentStatsModal.classList.remove('show');
-    studentStatsModal.onclick = e => { if (e.target === studentStatsModal) studentStatsModal.classList.remove('show'); };
+    // Обработчик кликов в списке студентов
+    if (studentListContainer) studentListContainer.addEventListener('click', e => {
+        const studentNameDiv = e.target.closest('.student-name.clickable');
+        if (studentNameDiv) {
+            const studentName = studentNameDiv.closest('.student-row').dataset.name;
+            openStudentStatsModal(studentName);
+            return;
+        }
+        if (isAdmin) {
+            handleStatusClick(e);
+        }
+    });
 
-    saveStudentsBtn.onclick = () => {
-        if (!isAdmin) return;
-        appData.students = studentListEditor.value.split('\n').map(s => s.trim()).filter(Boolean);
-        saveData();
-    };
-    
-    exportDataBtn.onclick = () => {
-        const dataStr = JSON.stringify(appData, null, 2);
-        const blob = new Blob([dataStr], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `attendance_backup_${new Date().toISOString().split('T')[0]}.json`;
-        document.body.appendChild(a); a.click(); document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-    };
-
-    importDataBtn.onclick = () => { if(isAdmin) importFileInput.click(); };
-    importFileInput.onchange = (event) => {
-        const file = event.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            try {
-                const importedData = JSON.parse(e.target.result);
-                if (importedData.students && importedData.attendanceData) {
-                    appData = importedData;
-                    saveData();
-                    settingsModal.classList.remove('show');
-                } else { alert('Ошибка: неверный формат файла.'); }
-            } catch (error) { alert('Ошибка при чтении файла.'); }
-        };
-        reader.readAsText(file);
-        importFileInput.value = '';
-    };
-
-    statsStartDate.addEventListener('change', updateStudentStats);
-    statsEndDate.addEventListener('change', updateStudentStats);
-    downloadStudentChartBtn.addEventListener('click', () => {
+    // Обработчики модального окна статистики
+    if(studentStatsModalCloseBtn) studentStatsModalCloseBtn.onclick = () => studentStatsModal.classList.remove('show');
+    if(studentStatsModal) studentStatsModal.onclick = e => { if (e.target === studentStatsModal) studentStatsModal.classList.remove('show'); };
+    if(statsStartDate) statsStartDate.addEventListener('change', updateStudentStats);
+    if(statsEndDate) statsEndDate.addEventListener('change', updateStudentStats);
+    if(downloadStudentChartBtn) downloadStudentChartBtn.addEventListener('click', () => {
         const studentName = studentStatsModal.dataset.currentStudent.replace(' ', '_');
         const link = document.createElement('a');
         link.href = studentChart.toBase64Image();
         link.download = `stats_${studentName}_${statsStartDate.value}_${statsEndDate.value}.png`;
         link.click();
     });
+
+    // --- ОБРАБОТЧИКИ ТОЛЬКО ДЛЯ АДМИНА ---
+    if (isAdmin) {
+        if(settingsBtn) settingsBtn.onclick = () => {
+            studentListEditor.value = (appData.students || []).join('\n');
+            updateLineNumbers();
+            settingsModal.classList.add('show');
+        };
+        if(closeModalBtn) closeModalBtn.onclick = () => settingsModal.classList.remove('show');
+        if(settingsModal) settingsModal.onclick = e => { if (e.target === settingsModal) settingsModal.classList.remove('show'); };
+        if(saveStudentsBtn) saveStudentsBtn.onclick = () => {
+            appData.students = studentListEditor.value.split('\n').map(s => s.trim()).filter(Boolean);
+            saveData();
+        };
+        if(studentListEditor) studentListEditor.addEventListener('input', updateLineNumbers);
+        if(exportDataBtn) exportDataBtn.onclick = () => {
+            const dataStr = JSON.stringify(appData, null, 2);
+            const blob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `attendance_backup_${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(a); a.click(); document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        };
+        if(importDataBtn) importDataBtn.onclick = () => { if(importFileInput) importFileInput.click(); };
+        if(importFileInput) importFileInput.onchange = (event) => {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const importedData = JSON.parse(e.target.result);
+                    if (importedData.students && importedData.attendanceData) {
+                        appData = importedData;
+                        saveData();
+                        settingsModal.classList.remove('show');
+                    } else { alert('Ошибка: неверный формат файла.'); }
+                } catch (error) { alert('Ошибка при чтении файла.'); }
+            };
+            reader.readAsText(file);
+            importFileInput.value = '';
+        };
+    }
+}
+
+function updateLineNumbers() {
+    if (isAdmin && studentListEditor && lineNumbers) {
+        const lineCount = studentListEditor.value.split('\n').length;
+        lineNumbers.innerHTML = Array.from({ length: lineCount }, (_, i) => `<span>${i + 1}</span>`).join('');
+    }
 }
 
 function init() {
-    // 1. Найти все элементы на странице
     cacheDOMElements();
-    
-    // 2. Установить тему
     applyTheme(localStorage.getItem('theme') || 'light');
-    if (!isAdmin) document.body.classList.add('guest-mode'); else document.title += " [Admin]";
-    
-    // 3. Подключиться к Firebase и получить данные
+    if (!isAdmin) {
+        document.body.classList.add('guest-mode');
+    } else {
+        document.title += " [Admin]";
+    }
     const appDataRef = ref(database, 'journalData');
     onValue(appDataRef, (snapshot) => {
         const data = snapshot.val();
@@ -459,11 +427,9 @@ function init() {
             students: (data && data.students) || [],
             attendanceData: (data && data.attendanceData) || {}
         };
-
         if (!data && isAdmin) {
             saveData();
         }
-
         const allDates = Object.keys(appData.attendanceData || {}).sort();
         if (allDates.length > 0) {
             chartStartDate.value = allDates[0];
@@ -475,12 +441,9 @@ function init() {
         render();
         renderChart();
     });
-    
     datePicker.value = currentDate;
-    
-    // 4. Установить все обработчики событий
     setupEventListeners();
 }
 
-// Запустить приложение после того, как вся страница загрузилась
+// Запускаем приложение после полной загрузки страницы
 document.addEventListener('DOMContentLoaded', init);
