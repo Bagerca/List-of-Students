@@ -5,14 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Журнал посещаемости</title>
     
-    <!-- Подключаем современный шрифт -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Code+Pro:wght@400;500&display=swap" rel="stylesheet">
     
     <link rel="stylesheet" href="style.css">
     
-    <!-- Библиотека для скриншотов -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
     <script src="script.js" defer></script>
 </head>
@@ -35,14 +33,18 @@
                 <div id="stats"></div>
             </div>
             <div id="student-list-container">
-                <!-- Список учеников будет сгенерирован здесь -->
+                <!-- Список учеников генерируется здесь -->
             </div>
         </main>
 
         <footer>
-            <button id="download-btn">
+            <button id="copy-btn" class="secondary-button">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                <span class="btn-text">Копировать отчет</span>
+            </button>
+            <button id="download-btn" class="primary-button">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                <span>Скачать отчет</span>
+                <span>Скачать картинку</span>
             </button>
         </footer>
     </div>
@@ -52,8 +54,11 @@
         <div class="modal-content">
             <button class="close-btn">&times;</button>
             <h2>Редактор списка</h2>
-            <p>Введите имена учеников, каждого с новой строки. Изменения сохраняются автоматически.</p>
-            <textarea id="student-list-editor" rows="15" placeholder="Иван Петров&#10;Мария Сидорова..."></textarea>
+            <p>Введите имена учеников, каждого с новой строки.</p>
+            <div class="code-editor">
+                <div class="line-numbers"><span>1</span></div>
+                <textarea id="student-list-editor" rows="10" spellcheck="false" placeholder="Александр Волков..."></textarea>
+            </div>
             <button id="save-settings-btn" class="primary-button">Сохранить и закрыть</button>
         </div>
     </div>
