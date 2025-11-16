@@ -54,7 +54,7 @@ const chartEndDate = document.getElementById('chart-end-date');
 
 // Элементы модального окна настроек
 const settingsModal = document.getElementById('settings-modal');
-const closeModalBtn = settingsModal.querySelector('.close-btn'); // <-- ИСПРАВЛЕНО
+const closeModalBtn = settingsModal.querySelector('.close-btn');
 const saveStudentsBtn = document.getElementById('save-students-btn');
 const studentListEditor = document.getElementById('student-list-editor');
 const lineNumbers = document.querySelector('.line-numbers');
@@ -249,10 +249,10 @@ function updateStudentStats() {
 
     const startDate = statsStartDate.value;
     const endDate = statsEndDate.value;
-    const attendanceData = appData.attendanceData || {}; // <-- ИСПРАВЛЕНО
+    const attendanceData = appData.attendanceData || {};
 
     const stats = { present: 0, late: 0, absent: 0, sick: 0, excused: 0 };
-    Object.keys(attendanceData).forEach(date => { // <-- ИСПРАВЛЕНО
+    Object.keys(attendanceData).forEach(date => {
         if (date >= startDate && date <= endDate) {
             const dayData = attendanceData[date];
             const status = dayData[studentName];
@@ -375,14 +375,22 @@ function setupEventListeners() {
         });
     });
 
-    const closeModal = () => settingsModal.classList.remove('show');
+    // --- ИСПРАВЛЕННЫЙ БЛОК ОБРАБОТЧИКОВ МОДАЛЬНЫХ ОКОН ---
+
+    // Обработчики для модального окна НАСТРОЕК
     settingsBtn.onclick = () => {
         studentListEditor.value = (appData.students || []).join('\n');
         updateLineNumbers();
         settingsModal.classList.add('show');
     };
-    closeModalBtn.onclick = closeModal;
-    settingsModal.onclick = e => { if (e.target === settingsModal) closeModal(); };
+    closeModalBtn.onclick = () => settingsModal.classList.remove('show');
+    settingsModal.onclick = e => { if (e.target === settingsModal) settingsModal.classList.remove('show'); };
+    
+    // Обработчики для модального окна СТАТИСТИКИ СТУДЕНТА
+    studentStatsModalCloseBtn.onclick = () => studentStatsModal.classList.remove('show');
+    studentStatsModal.onclick = e => { if (e.target === studentStatsModal) studentStatsModal.classList.remove('show'); };
+
+    // --- КОНЕЦ ИСПРАВЛЕННОГО БЛОКА ---
 
     saveStudentsBtn.onclick = () => {
         if (!isAdmin) return;
@@ -412,7 +420,7 @@ function setupEventListeners() {
                 if (importedData.students && importedData.attendanceData) {
                     appData = importedData;
                     saveData();
-                    closeModal();
+                    settingsModal.classList.remove('show');
                 } else { alert('Ошибка: неверный формат файла.'); }
             } catch (error) { alert('Ошибка при чтении файла.'); }
         };
@@ -420,10 +428,6 @@ function setupEventListeners() {
         importFileInput.value = '';
     };
 
-    // Обработчики для модального окна статистики
-    const closeStudentModal = () => studentStatsModal.classList.remove('show');
-    studentStatsModalCloseBtn.onclick = closeStudentModal;
-    studentStatsModal.onclick = e => { if (e.target === studentStatsModal) closeStudentModal(); };
     statsStartDate.addEventListener('change', updateStudentStats);
     statsEndDate.addEventListener('change', updateStudentStats);
     downloadStudentChartBtn.addEventListener('click', () => {
@@ -443,17 +447,14 @@ function init() {
     const appDataRef = ref(database, 'journalData');
     onValue(appDataRef, (snapshot) => {
         const data = snapshot.val();
-        // --- ИСПРАВЛЕНИЕ ---
-        // Гарантируем, что appData всегда имеет правильную структуру
         appData = {
             students: (data && data.students) || [],
             attendanceData: (data && data.attendanceData) || {}
         };
 
         if (!data && isAdmin) {
-            saveData(); // Сохраняем начальную структуру, если база пуста
+            saveData();
         }
-        // --- КОНЕЦ ИСПРАВЛЕНИЯ ---
 
         const allDates = Object.keys(appData.attendanceData || {}).sort();
         if (allDates.length > 0) {
