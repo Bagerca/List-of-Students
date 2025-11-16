@@ -21,7 +21,7 @@ const isAdmin = urlParams.get('admin') === 'true';
 let appData = { students: [], attendanceData: {} };
 let currentDate = new Date().toISOString().split('T')[0];
 let attendanceChart = null;
-let studentChart = null; // Для диаграммы студента
+let studentChart = null;
 
 const statuses = {
     present: { text: 'Присутствовал' }, late: { text: 'Опоздал' }, absent: { text: 'Отсутствовал' },
@@ -37,42 +37,17 @@ const statusIcons = {
 const sunIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>`;
 const moonIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>`;
 
-// --- 3. ПОЛУЧЕНИЕ ЭЛЕМЕНТОВ DOM ---
-const datePicker = document.getElementById('date-picker');
-const prevDayBtn = document.getElementById('prev-day-btn');
-const nextDayBtn = document.getElementById('next-day-btn');
-const sheetDateDisplay = document.getElementById('sheet-date-display');
-const studentListContainer = document.getElementById('student-list-container');
-const downloadBtn = document.getElementById('download-btn');
-const copyBtn = document.getElementById('copy-btn');
-const statsContainer = document.getElementById('stats');
-const settingsBtn = document.getElementById('settings-btn');
-const themeToggleBtn = document.getElementById('theme-toggle-btn');
-const chartCanvas = document.getElementById('attendance-chart');
-const chartStartDate = document.getElementById('chart-start-date');
-const chartEndDate = document.getElementById('chart-end-date');
+// --- 3. ОБЪЯВЛЕНИЕ ПЕРЕМЕННЫХ ДЛЯ DOM-ЭЛЕМЕНТОВ ---
+// Мы их найдем и присвоим в функции cacheDOMElements
+let datePicker, prevDayBtn, nextDayBtn, sheetDateDisplay, studentListContainer, 
+    downloadBtn, copyBtn, statsContainer, settingsBtn, themeToggleBtn, 
+    chartCanvas, chartStartDate, chartEndDate, settingsModal, closeModalBtn, 
+    saveStudentsBtn, studentListEditor, lineNumbers, exportDataBtn, 
+    importDataBtn, importFileInput, studentStatsModal, studentStatsName, 
+    studentStatsList, studentChartCanvas, statsStartDate, statsEndDate, 
+    downloadStudentChartBtn, studentStatsModalCloseBtn;
 
-// Элементы модального окна настроек
-const settingsModal = document.getElementById('settings-modal');
-const closeModalBtn = settingsModal.querySelector('.close-btn');
-const saveStudentsBtn = document.getElementById('save-students-btn');
-const studentListEditor = document.getElementById('student-list-editor');
-const lineNumbers = document.querySelector('.line-numbers');
-const exportDataBtn = document.getElementById('export-data-btn');
-const importDataBtn = document.getElementById('import-data-btn');
-const importFileInput = document.getElementById('import-file-input');
-
-// Элементы модального окна статистики
-const studentStatsModal = document.getElementById('student-stats-modal');
-const studentStatsName = document.getElementById('student-stats-name');
-const studentStatsList = document.getElementById('student-stats-list');
-const studentChartCanvas = document.getElementById('student-chart');
-const statsStartDate = document.getElementById('stats-start-date');
-const statsEndDate = document.getElementById('stats-end-date');
-const downloadStudentChartBtn = document.getElementById('download-student-chart-btn');
-const studentStatsModalCloseBtn = studentStatsModal.querySelector('.close-btn');
-
-// --- 4. ОСНОВНЫЕ ФУНКЦИИ ---
+// --- 4. ФУНКЦИИ ПРИЛОЖЕНИЯ ---
 
 function saveData() { if (isAdmin) set(ref(database, 'journalData'), appData); }
 
@@ -114,8 +89,7 @@ function updateStats() {
     statsContainer.innerHTML = `Присутствует: <strong>${presentCount}/${total}</strong> &nbsp;·&nbsp; Опоздало: <strong>${lateCount}</strong> &nbsp;·&nbsp; Отсутствует: <strong>${absentCount}</strong>`;
 }
 
-// --- 5. ФУНКЦИИ ТЕМЫ И ДИАГРАММ ---
-
+// ... все остальные функции (applyTheme, toggleTheme, prepareChartData, renderChart, и т.д.) без изменений ...
 function applyTheme(theme) {
     document.body.classList.toggle('theme-dark', theme === 'dark');
     themeToggleBtn.innerHTML = theme === 'dark' ? sunIcon : moonIcon;
@@ -199,7 +173,6 @@ function renderChart() {
     });
 }
 
-// --- ФУНКЦИИ ДЛЯ СТАТИСТИКИ СТУДЕНТА ---
 function renderStudentChart(stats) {
     if (studentChart) {
         studentChart.destroy();
@@ -289,8 +262,8 @@ function openStudentStatsModal(studentName) {
     studentStatsModal.classList.add('show');
 }
 
-// --- 6. ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ---
 function formatDate(d) { return new Date(d + 'T00:00:00').toLocaleDateString('ru-RU', { year: 'numeric', month: 'long', day: 'numeric' }); }
+
 function updateLineNumbers() {
     const lineCount = studentListEditor.value.split('\n').length;
     lineNumbers.innerHTML = Array.from({ length: lineCount }, (_, i) => `<span>${i + 1}</span>`).join('');
@@ -307,7 +280,6 @@ function changeDate(offset) {
     render();
 }
 
-// --- 7. ОБРАБОТЧИКИ СОБЫТИЙ ---
 function handleStatusClick(e) {
     if (!isAdmin) return;
     const button = e.target.closest('button[data-status]');
@@ -326,6 +298,42 @@ function handleStatusClick(e) {
         appData.attendanceData[currentDate][name] = status;
     }
     saveData();
+}
+
+// --- 5. ФУНКЦИИ ИНИЦИАЛИЗАЦИИ ---
+
+function cacheDOMElements() {
+    datePicker = document.getElementById('date-picker');
+    prevDayBtn = document.getElementById('prev-day-btn');
+    nextDayBtn = document.getElementById('next-day-btn');
+    sheetDateDisplay = document.getElementById('sheet-date-display');
+    studentListContainer = document.getElementById('student-list-container');
+    downloadBtn = document.getElementById('download-btn');
+    copyBtn = document.getElementById('copy-btn');
+    statsContainer = document.getElementById('stats');
+    settingsBtn = document.getElementById('settings-btn');
+    themeToggleBtn = document.getElementById('theme-toggle-btn');
+    chartCanvas = document.getElementById('attendance-chart');
+    chartStartDate = document.getElementById('chart-start-date');
+    chartEndDate = document.getElementById('chart-end-date');
+
+    settingsModal = document.getElementById('settings-modal');
+    closeModalBtn = settingsModal.querySelector('.close-btn');
+    saveStudentsBtn = document.getElementById('save-students-btn');
+    studentListEditor = document.getElementById('student-list-editor');
+    lineNumbers = document.querySelector('.line-numbers');
+    exportDataBtn = document.getElementById('export-data-btn');
+    importDataBtn = document.getElementById('import-data-btn');
+    importFileInput = document.getElementById('import-file-input');
+
+    studentStatsModal = document.getElementById('student-stats-modal');
+    studentStatsName = document.getElementById('student-stats-name');
+    studentStatsList = document.getElementById('student-stats-list');
+    studentChartCanvas = document.getElementById('student-chart');
+    statsStartDate = document.getElementById('stats-start-date');
+    statsEndDate = document.getElementById('stats-end-date');
+    downloadStudentChartBtn = document.getElementById('download-student-chart-btn');
+    studentStatsModalCloseBtn = studentStatsModal.querySelector('.close-btn');
 }
 
 function setupEventListeners() {
@@ -375,8 +383,6 @@ function setupEventListeners() {
         });
     });
 
-    // --- ИСПРАВЛЕННЫЙ БЛОК ОБРАБОТЧИКОВ МОДАЛЬНЫХ ОКОН ---
-
     // Обработчики для модального окна НАСТРОЕК
     settingsBtn.onclick = () => {
         studentListEditor.value = (appData.students || []).join('\n');
@@ -389,8 +395,6 @@ function setupEventListeners() {
     // Обработчики для модального окна СТАТИСТИКИ СТУДЕНТА
     studentStatsModalCloseBtn.onclick = () => studentStatsModal.classList.remove('show');
     studentStatsModal.onclick = e => { if (e.target === studentStatsModal) studentStatsModal.classList.remove('show'); };
-
-    // --- КОНЕЦ ИСПРАВЛЕННОГО БЛОКА ---
 
     saveStudentsBtn.onclick = () => {
         if (!isAdmin) return;
@@ -439,11 +443,15 @@ function setupEventListeners() {
     });
 }
 
-// --- 8. ИНИЦИАЛИЗАЦИЯ ПРИЛОЖЕНИЯ ---
 function init() {
+    // 1. Найти все элементы на странице
+    cacheDOMElements();
+    
+    // 2. Установить тему
     applyTheme(localStorage.getItem('theme') || 'light');
     if (!isAdmin) document.body.classList.add('guest-mode'); else document.title += " [Admin]";
     
+    // 3. Подключиться к Firebase и получить данные
     const appDataRef = ref(database, 'journalData');
     onValue(appDataRef, (snapshot) => {
         const data = snapshot.val();
@@ -467,8 +475,12 @@ function init() {
         render();
         renderChart();
     });
+    
     datePicker.value = currentDate;
+    
+    // 4. Установить все обработчики событий
     setupEventListeners();
 }
 
-init();
+// Запустить приложение после того, как вся страница загрузилась
+document.addEventListener('DOMContentLoaded', init);
