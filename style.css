@@ -1,80 +1,123 @@
-/* Общие стили */
-body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-    background-color: #f4f7f9;
-    color: #333;
-    margin: 0;
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
+/* --- Глобальные переменные и стили --- */
+:root {
+    --bg-color: #f0f2f5;
+    --card-bg-color: #ffffff;
+    --primary-text-color: #1c1e21;
+    --secondary-text-color: #606770;
+    --border-color: #dee2e6;
+    --accent-color: #0d6efd;
+    --accent-color-hover: #0b5ed7;
+    --green: #198754;
+    --yellow: #ffc107;
+    --red: #dc3545;
+    --blue: #0dcaf0;
+    --font-family: 'Inter', sans-serif;
 }
 
-/* Шапка */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: var(--font-family);
+    background-color: var(--bg-color);
+    color: var(--primary-text-color);
+    padding: 20px;
+}
+
+.container {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+/* --- Шапка --- */
 header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background-color: #fff;
-    padding: 10px 20px;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     margin-bottom: 20px;
 }
 
 header h1 {
-    margin: 0;
-    font-size: 1.5em;
-    color: #2c3e50;
+    font-size: 1.8rem;
+    font-weight: 700;
 }
 
 .header-controls {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 15px;
 }
 
-input[type="date"], button {
+#date-picker {
     padding: 8px 12px;
-    border-radius: 6px;
-    border: 1px solid #ccc;
-    font-size: 1em;
-}
-
-button {
-    cursor: pointer;
-    background-color: #3498db;
-    color: white;
-    border: none;
-    transition: background-color 0.2s;
-}
-
-button:hover {
-    background-color: #2980b9;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 1rem;
+    color: var(--secondary-text-color);
+    background-color: var(--card-bg-color);
 }
 
 #settings-btn {
     background: none;
     border: none;
-    font-size: 1.8em;
-    padding: 0;
+    cursor: pointer;
+    color: var(--secondary-text-color);
+    padding: 8px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-/* Основной контент */
-main {
-    background-color: #fff;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    flex-grow: 1;
+#settings-btn:hover {
+    background-color: #e4e6eb;
+    color: var(--primary-text-color);
 }
 
+
+/* --- Основной блок (Карточка журнала) --- */
+main#attendance-sheet {
+    background-color: var(--card-bg-color);
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    overflow: hidden; /* Чтобы внутренние элементы не выходили за скругленные углы */
+}
+
+.sheet-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--border-color);
+    background-color: #f7f8fa;
+}
+
+#sheet-date-display {
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+#stats {
+    font-size: 0.9rem;
+    color: var(--secondary-text-color);
+}
+
+#stats strong {
+    color: var(--primary-text-color);
+}
+
+
+/* --- Список учеников --- */
 .student-row {
     display: flex;
     align-items: center;
-    padding: 15px 10px;
-    border-bottom: 1px solid #eee;
-    transition: background-color 0.2s;
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--border-color);
+    transition: background-color 0.2s ease;
 }
 
 .student-row:last-child {
@@ -82,101 +125,175 @@ main {
 }
 
 .student-row:hover {
-    background-color: #f9f9f9;
+    background-color: #f7f8fa;
 }
 
 .student-name {
     flex-grow: 1;
-    font-size: 1.1em;
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+.status-buttons {
+    display: flex;
+    gap: 8px;
 }
 
 .status-buttons button {
-    width: 40px;
-    height: 40px;
-    margin-left: 5px;
-    font-size: 1.2em;
-    border-radius: 50%;
-    border: 2px solid transparent;
-    opacity: 0.5;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    background-color: var(--card-bg-color);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--secondary-text-color);
+    transition: all 0.2s ease;
+}
+
+.status-buttons button:hover {
+    border-color: var(--accent-color);
+    color: var(--accent-color);
 }
 
 .status-buttons button.active {
-    opacity: 1;
-    transform: scale(1.1);
-    box-shadow: 0 0 10px rgba(0,0,0,0.2);
+    color: white;
+    border: 1px solid transparent;
 }
 
-.status-present { background-color: #2ecc71; } /* Зеленый */
-.status-late { background-color: #f1c40f; }   /* Желтый */
-.status-absent { background-color: #e74c3c; } /* Красный */
-.status-sick { background-color: #3498db; }  /* Синий */
+/* Цвета для активных кнопок */
+button.status-present.active { background-color: var(--green); border-color: var(--green); }
+button.status-late.active    { background-color: var(--yellow); border-color: var(--yellow); color: #333; }
+button.status-absent.active  { background-color: var(--red); border-color: var(--red); }
+button.status-sick.active    { background-color: var(--blue); border-color: var(--blue); }
 
-/* Подвал */
+.status-buttons button svg {
+    width: 20px;
+    height: 20px;
+}
+
+/* --- Подвал и кнопка скачивания --- */
 footer {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-top: 20px;
-    padding: 15px 20px;
-    background-color: #fff;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-#stats {
-    font-size: 1.1em;
-    font-weight: bold;
-    color: #555;
+    justify-content: center;
+    margin-top: 24px;
 }
 
 #download-btn {
-    background-color: #1abc9c;
-    font-size: 1.1em;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    padding: 12px 24px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    background-color: var(--accent-color);
+    color: white;
+    transition: background-color 0.2s ease, box-shadow 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 #download-btn:hover {
-    background-color: #16a085;
+    background-color: var(--accent-color-hover);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
-/* Модальное окно */
+
+/* --- Модальное окно --- */
 .modal {
     display: none;
-    position: fixed;
-    z-index: 1;
+    position: fixed; z-index: 100;
     left: 0; top: 0;
     width: 100%; height: 100%;
-    background-color: rgba(0,0,0,0.5);
+    background-color: rgba(0,0,0,0.6);
     justify-content: center;
     align-items: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+.modal.show {
+    display: flex;
+    opacity: 1;
 }
 
 .modal-content {
-    background-color: #fff;
-    padding: 30px;
-    border-radius: 8px;
-    width: 80%;
+    background-color: var(--card-bg-color);
+    padding: 24px;
+    border-radius: 12px;
+    width: 90%;
     max-width: 500px;
     box-shadow: 0 5px 15px rgba(0,0,0,0.3);
     position: relative;
+    transform: scale(0.95);
+    transition: transform 0.3s ease;
+}
+.modal.show .modal-content {
+    transform: scale(1);
+}
+
+.modal-content h2 {
+    margin-bottom: 8px;
+}
+.modal-content p {
+    margin-bottom: 16px;
+    color: var(--secondary-text-color);
+    font-size: 0.9rem;
 }
 
 .close-btn {
     position: absolute;
-    top: 10px; right: 20px;
-    font-size: 2em;
-    cursor: pointer;
+    top: 10px; right: 10px;
+    font-size: 1.5rem;
+    font-weight: bold;
     color: #aaa;
+    border: none;
+    background: none;
+    cursor: pointer;
+    width: 32px; height: 32px;
+    line-height: 32px; text-align: center;
+    border-radius: 50%;
+    transition: background-color 0.2s ease, color 0.2s ease;
 }
 .close-btn:hover {
-    color: #333;
+    background-color: var(--bg-color);
+    color: var(--primary-text-color);
 }
 
 #student-list-editor {
     width: 100%;
-    margin-top: 10px;
-    margin-bottom: 20px;
-    font-size: 1em;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
+    margin-bottom: 16px;
+    font-size: 1rem;
+    font-family: var(--font-family);
+    padding: 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    resize: vertical;
+}
+
+.primary-button {
+    width: 100%;
+    padding: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    border: none;
+    border-radius: 8px;
+    background-color: var(--accent-color);
+    color: white;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+.primary-button:hover {
+    background-color: var(--accent-color-hover);
+}
+
+/* Адаптивность для мобильных устройств */
+@media (max-width: 600px) {
+    body { padding: 10px; }
+    header { flex-direction: column; gap: 15px; }
+    .student-row { flex-direction: column; align-items: flex-start; gap: 10px; }
+    .sheet-header { flex-direction: column; align-items: flex-start; gap: 8px; }
 }
