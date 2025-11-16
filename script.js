@@ -47,20 +47,22 @@ const downloadBtn = document.getElementById('download-btn');
 const copyBtn = document.getElementById('copy-btn');
 const statsContainer = document.getElementById('stats');
 const settingsBtn = document.getElementById('settings-btn');
+const themeToggleBtn = document.getElementById('theme-toggle-btn');
+const chartCanvas = document.getElementById('attendance-chart');
+const chartStartDate = document.getElementById('chart-start-date');
+const chartEndDate = document.getElementById('chart-end-date');
+
+// Элементы модального окна настроек
 const settingsModal = document.getElementById('settings-modal');
-const closeModalBtn = document.querySelector('.close-btn');
+const closeModalBtn = settingsModal.querySelector('.close-btn'); // <-- ИСПРАВЛЕНО
 const saveStudentsBtn = document.getElementById('save-students-btn');
 const studentListEditor = document.getElementById('student-list-editor');
 const lineNumbers = document.querySelector('.line-numbers');
 const exportDataBtn = document.getElementById('export-data-btn');
 const importDataBtn = document.getElementById('import-data-btn');
 const importFileInput = document.getElementById('import-file-input');
-const themeToggleBtn = document.getElementById('theme-toggle-btn');
-const chartCanvas = document.getElementById('attendance-chart');
-const chartStartDate = document.getElementById('chart-start-date');
-const chartEndDate = document.getElementById('chart-end-date');
 
-// Элементы DOM для модального окна статистики
+// Элементы модального окна статистики
 const studentStatsModal = document.getElementById('student-stats-modal');
 const studentStatsName = document.getElementById('student-stats-name');
 const studentStatsList = document.getElementById('student-stats-list');
@@ -197,7 +199,7 @@ function renderChart() {
     });
 }
 
-// --- НОВЫЕ ФУНКЦИИ ДЛЯ СТАТИСТИКИ СТУДЕНТА ---
+// --- ФУНКЦИИ ДЛЯ СТАТИСТИКИ СТУДЕНТА ---
 function renderStudentChart(stats) {
     if (studentChart) {
         studentChart.destroy();
@@ -247,11 +249,12 @@ function updateStudentStats() {
 
     const startDate = statsStartDate.value;
     const endDate = statsEndDate.value;
+    const attendanceData = appData.attendanceData || {}; // <-- ИСПРАВЛЕНО
 
     const stats = { present: 0, late: 0, absent: 0, sick: 0, excused: 0 };
-    Object.keys(appData.attendanceData).forEach(date => {
+    Object.keys(attendanceData).forEach(date => { // <-- ИСПРАВЛЕНО
         if (date >= startDate && date <= endDate) {
-            const dayData = appData.attendanceData[date];
+            const dayData = attendanceData[date];
             const status = dayData[studentName];
             if (status && stats.hasOwnProperty(status)) {
                 stats[status]++;
@@ -276,7 +279,6 @@ function openStudentStatsModal(studentName) {
     studentStatsName.textContent = `Статистика: ${studentName}`;
     studentStatsModal.dataset.currentStudent = studentName;
 
-    // Устанавливаем период по умолчанию (последние 30 дней)
     const end = new Date();
     const start = new Date();
     start.setDate(end.getDate() - 30);
@@ -441,7 +443,18 @@ function init() {
     const appDataRef = ref(database, 'journalData');
     onValue(appDataRef, (snapshot) => {
         const data = snapshot.val();
-        if (data) appData = data; else if (isAdmin) saveData();
+        // --- ИСПРАВЛЕНИЕ ---
+        // Гарантируем, что appData всегда имеет правильную структуру
+        appData = {
+            students: (data && data.students) || [],
+            attendanceData: (data && data.attendanceData) || {}
+        };
+
+        if (!data && isAdmin) {
+            saveData(); // Сохраняем начальную структуру, если база пуста
+        }
+        // --- КОНЕЦ ИСПРАВЛЕНИЯ ---
+
         const allDates = Object.keys(appData.attendanceData || {}).sort();
         if (allDates.length > 0) {
             chartStartDate.value = allDates[0];
