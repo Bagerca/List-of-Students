@@ -56,6 +56,8 @@ const themeToggleBtn = document.getElementById('theme-toggle-btn');
 const chartCanvas = document.getElementById('attendance-chart');
 const chartStartDate = document.getElementById('chart-start-date');
 const chartEndDate = document.getElementById('chart-end-date');
+const prevDayBtn = document.getElementById('prev-day-btn'); // <-- Новая строка
+const nextDayBtn = document.getElementById('next-day-btn'); // <-- Новая строка
 
 // --- 4. ОСНОВНЫЕ ФУНКЦИИ ---
 
@@ -191,6 +193,15 @@ function updateLineNumbers() {
     lineNumbers.innerHTML = Array.from({ length: lineCount }, (_, i) => `<span>${i + 1}</span>`).join('');
 }
 
+// Новая функция для изменения даты
+function changeDate(offset) {
+    const currentDateObj = new Date(currentDate + 'T00:00:00');
+    currentDateObj.setDate(currentDateObj.getDate() + offset);
+    currentDate = currentDateObj.toISOString().split('T')[0];
+    datePicker.value = currentDate;
+    render();
+}
+
 // --- 7. ОБРАБОТЧИКИ СОБЫТИЙ ---
 function handleStatusClick(e) {
     if (!isAdmin) return;
@@ -214,6 +225,8 @@ function handleStatusClick(e) {
 
 function setupEventListeners() {
     datePicker.addEventListener('change', e => { currentDate = e.target.value; render(); });
+    prevDayBtn.addEventListener('click', () => changeDate(-1)); // <-- Новая строка
+    nextDayBtn.addEventListener('click', () => changeDate(1));   // <-- Новая строка
     studentListContainer.addEventListener('click', handleStatusClick);
     studentListEditor.addEventListener('input', updateLineNumbers);
     themeToggleBtn.addEventListener('click', toggleTheme);
