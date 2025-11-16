@@ -99,9 +99,49 @@ function updateStats() {
     statsContainer.innerHTML = `Присутствует: <strong>${presentCount}/${total}</strong> &nbsp;·&nbsp; Опоздало: <strong>${lateCount}</strong> &nbsp;·&nbsp; Отсутствует: <strong>${absentCount}</strong>`;
 }
 
-// --- 5. ФУНКЦИИ ТЕМЫ И ДИАГРАММЫ (ОБНОВЛЕННАЯ ВЕРСИЯ) ---
+// --- 5. ФУНКЦИИ ТЕМЫ И ДИАГРАММЫ ---
 
-// Вспомогательная функция для преобразования HEX цвета в RGBA с прозрачностью
+function applyTheme(theme) {
+    document.body.classList.toggle('theme-dark', theme === 'dark');
+    themeToggleBtn.innerHTML = theme === 'dark' ? sunIcon : moonIcon;
+}
+
+function toggleTheme() {
+    const newTheme = document.body.classList.contains('theme-dark') ? 'light' : 'dark';
+    localStorage.setItem('theme', newTheme);
+    applyTheme(newTheme);
+    renderChart();
+}
+
+function prepareChartData(startDate, endDate) {
+    const labels = [];
+    const statusCounts = {};
+    Object.keys(statuses).forEach(key => statusCounts[key] = []);
+    const { attendanceData = {} } = appData;
+    const dates = Object.keys(attendanceData).sort();
+
+    dates.forEach(date => {
+        if (date >= startDate && date <= endDate) {
+            labels.push(formatDate(date).slice(0, -8));
+            const dayData = attendanceData[date];
+            const dailyCounts = {};
+            Object.keys(statuses).forEach(key => dailyCounts[key] = 0);
+            Object.values(dayData).forEach(status => {
+                if (dailyCounts[status] !== undefined) dailyCounts[status]++;
+            });
+            Object.keys(statuses).forEach(key => statusCounts[key].push(dailyCounts[key]));
+        }
+    });
+
+    const statusColors = { present: '#198754', late: '#ffc107', absent: '#dc3545', sick: '#0dcaf0', excused: '#6c757d' };
+    const datasets = Object.keys(statuses).map(key => ({
+        label: statuses[key].text,
+        data: statusCounts[key],
+        backgroundColor: statusColors[key],
+    }));
+    return { labels, datasets };
+}
+
 function hexToRgba(hex, alpha = 0.2) {
     const r = parseInt(hex.slice(1, 3), 16);
     const g = parseInt(hex.slice(3, 5), 16);
@@ -109,11 +149,8 @@ function hexToRgba(hex, alpha = 0.2) {
     return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
-// ЗАМЕНИТЕ ВАШУ СТАРУЮ ФУНКЦИЮ renderChart НА ЭТУ
 function renderChart() {
-    if (attendanceChart) {
-        attendanceChart.destroy(); // Уничтожаем старую диаграмму
-    }
+    if (attendanceChart) attendanceChart.destroy();
     if (!chartStartDate.value || !chartEndDate.value) return;
 
     const chartData = prepareChartData(chartStartDate.value, chartEndDate.value);
@@ -121,47 +158,27 @@ function renderChart() {
     const gridColor = isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
     const textColor = isDark ? '#e4e6eb' : '#606770';
 
-    // Меняем настройки для линейного графика
     attendanceChart = new Chart(chartCanvas, {
-        type: 'line', // <-- ГЛАВНОЕ ИЗМЕНЕНИЕ: тип диаграммы
+        type: 'line',
         data: {
             labels: chartData.labels,
             datasets: chartData.datasets.map(dataset => ({
                 ...dataset,
-                fill: true, // Закрашиваем область под линией
-                backgroundColor: hexToRgba(dataset.backgroundColor, 0.1), // Делаем цвет под линией полупрозрачным
-                borderColor: dataset.backgroundColor, // Цвет самой линии оставляем ярким
-                tension: 0.4, // Сглаживание линий
+                fill: true,
+                backgroundColor: hexToRgba(dataset.backgroundColor, 0.1),
+                borderColor: dataset.backgroundColor,
+                tension: 0.4,
                 pointRadius: 4,
                 pointBackgroundColor: dataset.backgroundColor
             }))
         },
         options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            interaction: {
-                mode: 'index',
-                intersect: false,
-            },
-            plugins: {
-                legend: { labels: { color: textColor }, position: 'bottom' },
-                tooltip: {
-                    position: 'nearest',
-                    titleFont: { weight: 'bold' },
-                    bodyFont: { size: 14 },
-                }
-            },
+            responsive: true, maintainAspectRatio: false,
+            interaction: { mode: 'index', intersect: false },
+            plugins: { legend: { labels: { color: textColor }, position: 'bottom' } },
             scales: {
-                // Убираем stacked: true, так как графики не должны складываться
-                x: { 
-                    ticks: { color: textColor },
-                    grid: { color: gridColor }
-                },
-                y: { 
-                    beginAtZero: true,
-                    ticks: { color: textColor, precision: 0 }, // Только целые числа на оси Y
-                    grid: { color: gridColor }
-                }
+                x: { ticks: { color: textColor }, grid: { color: gridColor } },
+                y: { beginAtZero: true, ticks: { color: textColor, precision: 0 }, grid: { color: gridColor } }
             }
         }
     });
@@ -202,15 +219,76 @@ function setupEventListeners() {
     themeToggleBtn.addEventListener('click', toggleTheme);
     chartStartDate.addEventListener('change', renderChart);
     chartEndDate.addEventListener('change', renderChart);
-    downloadBtn.addEventListener('click', () => { /* ... */ });
-    copyBtn.addEventListener('click', () => { /* ... */ });
-    settingsBtn.onclick = () => { /* ... */ };
-    closeModalBtn.onclick = () => settingsModal.classList.remove('show');
-    settingsModal.onclick = e => { if (e.target === settingsModal) settingsModal.classList.remove('show'); };
-    saveStudentsBtn.onclick = () => { /* ... */ };
-    exportDataBtn.onclick = () => { /* ... */ };
+    
+    downloadBtn.addEventListener('click', () => {
+        html2canvas(document.getElementById('attendance-sheet'), { scale: 2 }).then(canvas => {
+            const link = document.createElement('a');
+            link.download = `attendance-${currentDate}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        });
+    });
+
+    copyBtn.addEventListener('click', () => {
+        const dayData = appData.attendanceData[currentDate] || {};
+        let reportText = `Отчет о посещаемости за ${formatDate(currentDate)}:\n\n`;
+        (appData.students || []).forEach(name => {
+            const statusKey = dayData[name];
+            const statusText = statusKey ? statuses[statusKey].text : 'Не отмечен';
+            reportText += `${name}: ${statusText}\n`;
+        });
+        navigator.clipboard.writeText(reportText).then(() => {
+            const btnText = copyBtn.querySelector('.btn-text');
+            const originalText = btnText.textContent;
+            btnText.textContent = 'Скопировано!';
+            setTimeout(() => { btnText.textContent = originalText; }, 2000);
+        });
+    });
+
+    const closeModal = () => settingsModal.classList.remove('show');
+    settingsBtn.onclick = () => {
+        studentListEditor.value = (appData.students || []).join('\n');
+        updateLineNumbers();
+        settingsModal.classList.add('show');
+    };
+    closeModalBtn.onclick = closeModal;
+    settingsModal.onclick = e => { if (e.target === settingsModal) closeModal(); };
+
+    saveStudentsBtn.onclick = () => {
+        if (!isAdmin) return;
+        appData.students = studentListEditor.value.split('\n').map(s => s.trim()).filter(Boolean);
+        saveData();
+    };
+    
+    exportDataBtn.onclick = () => {
+        const dataStr = JSON.stringify(appData, null, 2);
+        const blob = new Blob([dataStr], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `attendance_backup_${new Date().toISOString().split('T')[0]}.json`;
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    };
+
     importDataBtn.onclick = () => { if(isAdmin) importFileInput.click(); };
-    importFileInput.onchange = (event) => { /* ... */ };
+    importFileInput.onchange = (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const importedData = JSON.parse(e.target.result);
+                if (importedData.students && importedData.attendanceData) {
+                    appData = importedData;
+                    saveData();
+                    closeModal();
+                } else { alert('Ошибка: неверный формат файла.'); }
+            } catch (error) { alert('Ошибка при чтении файла.'); }
+        };
+        reader.readAsText(file);
+        importFileInput.value = '';
+    };
 }
 
 // --- 8. ИНИЦИАЛИЗАЦИЯ ПРИЛОЖЕНИЯ ---
