@@ -99,53 +99,21 @@ function updateStats() {
     statsContainer.innerHTML = `Присутствует: <strong>${presentCount}/${total}</strong> &nbsp;·&nbsp; Опоздало: <strong>${lateCount}</strong> &nbsp;·&nbsp; Отсутствует: <strong>${absentCount}</strong>`;
 }
 
-// --- 5. ФУНКЦИИ ТЕМЫ И ДИАГРАММЫ ---
+// --- 5. ФУНКЦИИ ТЕМЫ И ДИАГРАММЫ (ОБНОВЛЕННАЯ ВЕРСИЯ) ---
 
-function applyTheme(theme) {
-    document.body.classList.toggle('theme-dark', theme === 'dark');
-    themeToggleBtn.innerHTML = theme === 'dark' ? sunIcon : moonIcon;
+// Вспомогательная функция для преобразования HEX цвета в RGBA с прозрачностью
+function hexToRgba(hex, alpha = 0.2) {
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
-function toggleTheme() {
-    const newTheme = document.body.classList.contains('theme-dark') ? 'light' : 'dark';
-    localStorage.setItem('theme', newTheme);
-    applyTheme(newTheme);
-    renderChart(); // Перерисовываем диаграмму с новыми цветами
-}
-
-function prepareChartData(startDate, endDate) {
-    const labels = [];
-    const statusCounts = {};
-    Object.keys(statuses).forEach(key => statusCounts[key] = []);
-
-    const { attendanceData = {} } = appData;
-    const dates = Object.keys(attendanceData).sort();
-
-    dates.forEach(date => {
-        if (date >= startDate && date <= endDate) {
-            labels.push(formatDate(date).slice(0, -8));
-            const dayData = attendanceData[date];
-            const dailyCounts = {};
-            Object.keys(statuses).forEach(key => dailyCounts[key] = 0);
-            Object.values(dayData).forEach(status => {
-                if (dailyCounts[status] !== undefined) dailyCounts[status]++;
-            });
-            Object.keys(statuses).forEach(key => statusCounts[key].push(dailyCounts[key]));
-        }
-    });
-
-    const statusColors = { present: '#198754', late: '#ffc107', absent: '#dc3545', sick: '#0dcaf0', excused: '#6c757d' };
-    const datasets = Object.keys(statuses).map(key => ({
-        label: statuses[key].text,
-        data: statusCounts[key],
-        backgroundColor: statusColors[key],
-    }));
-
-    return { labels, datasets };
-}
-
+// ЗАМЕНИТЕ ВАШУ СТАРУЮ ФУНКЦИЮ renderChart НА ЭТУ
 function renderChart() {
-    if (attendanceChart) attendanceChart.destroy();
+    if (attendanceChart) {
+        attendanceChart.destroy(); // Уничтожаем старую диаграмму
+    }
     if (!chartStartDate.value || !chartEndDate.value) return;
 
     const chartData = prepareChartData(chartStartDate.value, chartEndDate.value);
@@ -153,15 +121,47 @@ function renderChart() {
     const gridColor = isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
     const textColor = isDark ? '#e4e6eb' : '#606770';
 
+    // Меняем настройки для линейного графика
     attendanceChart = new Chart(chartCanvas, {
-        type: 'bar',
-        data: chartData,
+        type: 'line', // <-- ГЛАВНОЕ ИЗМЕНЕНИЕ: тип диаграммы
+        data: {
+            labels: chartData.labels,
+            datasets: chartData.datasets.map(dataset => ({
+                ...dataset,
+                fill: true, // Закрашиваем область под линией
+                backgroundColor: hexToRgba(dataset.backgroundColor, 0.1), // Делаем цвет под линией полупрозрачным
+                borderColor: dataset.backgroundColor, // Цвет самой линии оставляем ярким
+                tension: 0.4, // Сглаживание линий
+                pointRadius: 4,
+                pointBackgroundColor: dataset.backgroundColor
+            }))
+        },
         options: {
-            responsive: true, maintainAspectRatio: false,
-            plugins: { legend: { labels: { color: textColor }, position: 'bottom' } },
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: {
+                mode: 'index',
+                intersect: false,
+            },
+            plugins: {
+                legend: { labels: { color: textColor }, position: 'bottom' },
+                tooltip: {
+                    position: 'nearest',
+                    titleFont: { weight: 'bold' },
+                    bodyFont: { size: 14 },
+                }
+            },
             scales: {
-                x: { stacked: true, ticks: { color: textColor }, grid: { color: gridColor } },
-                y: { stacked: true, beginAtZero: true, ticks: { color: textColor }, grid: { color: gridColor } }
+                // Убираем stacked: true, так как графики не должны складываться
+                x: { 
+                    ticks: { color: textColor },
+                    grid: { color: gridColor }
+                },
+                y: { 
+                    beginAtZero: true,
+                    ticks: { color: textColor, precision: 0 }, // Только целые числа на оси Y
+                    grid: { color: gridColor }
+                }
             }
         }
     });
