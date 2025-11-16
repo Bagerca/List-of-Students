@@ -43,7 +43,6 @@ header h1 { font-size: 1.8rem; font-weight: 700; }
 #settings-btn:hover, #theme-toggle-btn:hover { background-color: var(--border-color); color: var(--primary-text-color); }
 #theme-toggle-btn svg { width: 22px; height: 22px; }
 
-/* --- НОВЫЕ СТИЛИ ДЛЯ НАВИГАЦИИ ПО ДАТЕ --- */
 .date-navigator { display: flex; align-items: center; }
 .date-navigator button {
     background-color: var(--card-bg-color);
@@ -63,7 +62,6 @@ header h1 { font-size: 1.8rem; font-weight: 700; }
 #date-picker { border-radius: 0; border-left: none; border-right: none; }
 #prev-day-btn { border-radius: 8px 0 0 8px; }
 #next-day-btn { border-radius: 0 8px 8px 0; }
-/* --- КОНЕЦ НОВЫХ СТИЛЕЙ --- */
 
 main#attendance-sheet { background-color: var(--card-bg-color); border-radius: 12px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); overflow: hidden; }
 .sheet-header { display: flex; justify-content: space-between; align-items: center; padding: 16px 24px; border-bottom: 1px solid var(--border-color); background-color: #f7f8fa; }
@@ -124,15 +122,7 @@ footer { display: flex; justify-content: center; gap: 12px; margin-top: 24px; }
 .guest-mode .status-buttons button { pointer-events: none; }
 .guest-mode .modal-content button, .guest-mode .modal-content textarea { pointer-events: none; opacity: 0.7; }
 
-@media (max-width: 600px) {
-    body { padding: 10px; }
-    header { flex-direction: column; gap: 15px; }
-    .student-row { flex-direction: column; align-items: flex-start; gap: 10px; }
-    .sheet-header { flex-direction: column; align-items: flex-start; gap: 8px; }
-    footer { flex-direction: column; gap: 10px; }
-    footer button { width: 100%; justify-content: center; }
-}
-
+/* --- НОВЫЕ СТИЛИ --- */
 /* Делаем имя студента кликабельным */
 .student-name.clickable {
     cursor: pointer;
@@ -177,11 +167,15 @@ footer { display: flex; justify-content: center; gap: 12px; margin-top: 24px; }
     font-weight: 600;
 }
 
-
-/* Адаптация для мобильных устройств */
 @media (max-width: 600px) {
-    /* ... существующие медиа-запросы ... */
-    
+    body { padding: 10px; }
+    header { flex-direction: column; gap: 15px; }
+    .student-row { flex-direction: column; align-items: flex-start; gap: 10px; }
+    .sheet-header { flex-direction: column; align-items: flex-start; gap: 8px; }
+    footer { flex-direction: column; gap: 10px; }
+    footer button { width: 100%; justify-content: center; }
+
+    /* Адаптация для модального окна статистики */
     .student-stats-layout {
         flex-direction: column;
     }
