@@ -43,6 +43,28 @@ header h1 { font-size: 1.8rem; font-weight: 700; }
 #settings-btn:hover, #theme-toggle-btn:hover { background-color: var(--border-color); color: var(--primary-text-color); }
 #theme-toggle-btn svg { width: 22px; height: 22px; }
 
+/* --- НОВЫЕ СТИЛИ ДЛЯ НАВИГАЦИИ ПО ДАТЕ --- */
+.date-navigator { display: flex; align-items: center; }
+.date-navigator button {
+    background-color: var(--card-bg-color);
+    border: 1px solid var(--border-color);
+    padding: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--secondary-text-color);
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+.date-navigator button:hover {
+    border-color: var(--accent-color);
+    background-color: var(--bg-color);
+}
+#date-picker { border-radius: 0; border-left: none; border-right: none; }
+#prev-day-btn { border-radius: 8px 0 0 8px; }
+#next-day-btn { border-radius: 0 8px 8px 0; }
+/* --- КОНЕЦ НОВЫХ СТИЛЕЙ --- */
+
 main#attendance-sheet { background-color: var(--card-bg-color); border-radius: 12px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); overflow: hidden; }
 .sheet-header { display: flex; justify-content: space-between; align-items: center; padding: 16px 24px; border-bottom: 1px solid var(--border-color); background-color: #f7f8fa; }
 body.theme-dark .sheet-header { background-color: #3a3b3c; }
