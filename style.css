@@ -10,7 +10,7 @@
     --yellow: #ffc107;
     --red: #dc3545;
     --blue: #0dcaf0;
-    --grey: #6c757d; /* Цвет для уважительной причины */
+    --grey: #6c757d;
     --font-family: 'Inter', sans-serif;
     --font-mono: 'Source Code Pro', monospace;
 }
@@ -23,7 +23,6 @@ body {
 }
 .container { max-width: 900px; margin: 0 auto; }
 
-/* --- Шапка --- */
 header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
 header h1 { font-size: 1.8rem; font-weight: 700; }
 .header-controls { display: flex; align-items: center; gap: 15px; }
@@ -31,14 +30,12 @@ header h1 { font-size: 1.8rem; font-weight: 700; }
 #settings-btn { background: none; border: none; cursor: pointer; color: var(--secondary-text-color); padding: 8px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: background-color 0.2s ease, color 0.2s ease; }
 #settings-btn:hover { background-color: #e4e6eb; color: var(--primary-text-color); }
 
-/* --- Основной блок --- */
 main#attendance-sheet { background-color: var(--card-bg-color); border-radius: 12px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); overflow: hidden; }
 .sheet-header { display: flex; justify-content: space-between; align-items: center; padding: 16px 24px; border-bottom: 1px solid var(--border-color); background-color: #f7f8fa; }
 #sheet-date-display { font-size: 1.1rem; font-weight: 600; }
 #stats { font-size: 0.9rem; color: var(--secondary-text-color); }
 #stats strong { color: var(--primary-text-color); }
 
-/* --- Список учеников --- */
 .student-row { display: flex; align-items: center; padding: 16px 24px; border-bottom: 1px solid var(--border-color); transition: background-color 0.2s ease; }
 .student-row:last-child { border-bottom: none; }
 .student-row:hover { background-color: #f7f8fa; }
@@ -51,10 +48,9 @@ button.status-present.active { background-color: var(--green); border-color: var
 button.status-late.active { background-color: var(--yellow); border-color: var(--yellow); color: #333; }
 button.status-absent.active { background-color: var(--red); border-color: var(--red); }
 button.status-sick.active { background-color: var(--blue); border-color: var(--blue); }
-button.status-excused.active { background-color: var(--grey); border-color: var(--grey); } /* Стиль для новой кнопки */
+button.status-excused.active { background-color: var(--grey); border-color: var(--grey); }
 .status-buttons button svg { width: 20px; height: 20px; }
 
-/* --- Подвал и кнопки действий --- */
 footer { display: flex; justify-content: center; gap: 12px; margin-top: 24px; }
 .primary-button, .secondary-button { display: flex; align-items: center; gap: 8px; font-family: var(--font-family); font-size: 1rem; font-weight: 600; padding: 12px 24px; border-radius: 8px; border: none; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); }
 .primary-button { background-color: var(--accent-color); color: white; }
@@ -62,7 +58,6 @@ footer { display: flex; justify-content: center; gap: 12px; margin-top: 24px; }
 .secondary-button { background-color: var(--card-bg-color); color: var(--primary-text-color); border: 1px solid var(--border-color); }
 .secondary-button:hover { background-color: #f7f8fa; border-color: #ced4da; }
 
-/* --- Модальное окно --- */
 .modal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); justify-content: center; align-items: center; opacity: 0; transition: opacity 0.3s ease; }
 .modal.show { display: flex; opacity: 1; }
 .modal-content { background-color: var(--card-bg-color); padding: 24px; border-radius: 12px; width: 90%; max-width: 500px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); position: relative; transform: scale(0.95); transition: transform 0.3s ease; }
@@ -71,20 +66,19 @@ footer { display: flex; justify-content: center; gap: 12px; margin-top: 24px; }
 .modal-content p { margin-bottom: 16px; color: var(--secondary-text-color); font-size: 0.9rem; }
 .close-btn { position: absolute; top: 10px; right: 10px; font-size: 1.5rem; color: #aaa; border: none; background: none; cursor: pointer; width: 32px; height: 32px; border-radius: 50%; transition: all 0.2s ease; }
 .close-btn:hover { background-color: var(--bg-color); color: var(--primary-text-color); }
-#save-settings-btn { width: 100%; }
+.modal-content .section { margin-top: 24px; border-top: 1px solid var(--border-color); padding-top: 24px; }
+.modal-content .section:first-of-type { margin-top: 0; border-top: none; padding-top: 0; }
+.modal-content h3 { margin-bottom: 4px; }
+.data-buttons { display: flex; gap: 12px; margin-top: 16px; }
+.data-buttons button { flex-grow: 1; justify-content: center; }
 
-/* --- Стилизация редактора под консоль --- */
 .code-editor { display: flex; background-color: #282c34; border: 1px solid #444; border-radius: 8px; margin-bottom: 16px; font-family: var(--font-mono); }
 .line-numbers { padding: 12px 8px 12px 12px; color: #6e7681; font-size: 1rem; line-height: 1.5; text-align: right; border-right: 1px solid #444; user-select: none; }
 .line-numbers span { display: block; }
-#student-list-editor {
-    flex-grow: 1; width: 100%;
-    background: none; border: none;
-    color: #abb2bf;
-    padding: 12px; font-size: 1rem; line-height: 1.5;
-    resize: none;
-    outline: none;
-}
+#student-list-editor { flex-grow: 1; width: 100%; background: none; border: none; color: #abb2bf; padding: 12px; font-size: 1rem; line-height: 1.5; resize: none; outline: none; }
+
+.guest-mode .status-buttons button, .guest-mode #settings-btn, .guest-mode footer { pointer-events: none; opacity: 0.6; }
+.guest-mode footer { display: none; }
 
 @media (max-width: 600px) {
     body { padding: 10px; }
