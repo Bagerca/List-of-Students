@@ -115,9 +115,6 @@ function updateLineNumbers() {
 
 // --- 6. ОБРАБОТЧИКИ СОБЫТИЙ ---
 
-// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-// !!! ВОТ ЗДЕСЬ НАХОДИТСЯ ИСПРАВЛЕННАЯ ФУНКЦИЯ !!!
-// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 function handleStatusClick(e) {
     if (!isAdmin) return;
     const button = e.target.closest('button[data-status]');
@@ -127,29 +124,29 @@ function handleStatusClick(e) {
     const name = row.dataset.name;
     const status = button.dataset.status;
 
-    // Инициализируем объект для текущего дня, если его нет
+    // !-- ИСПРАВЛЕНИЕ ЗДЕСЬ --!
+    // Более надежная проверка и инициализация объектов, если их нет
+    if (!appData.attendanceData) {
+        appData.attendanceData = {};
+    }
     if (!appData.attendanceData[currentDate]) {
         appData.attendanceData[currentDate] = {};
     }
+    
     const currentStatus = appData.attendanceData[currentDate][name];
     
-    // --- Шаг 1: Мгновенное обновление UI ---
     if (currentStatus === status) {
-        // Если статус уже активен, снимаем его
         button.classList.remove('active');
         delete appData.attendanceData[currentDate][name];
     } else {
-        // Иначе, делаем новую кнопку активной, а остальные - нет
         row.querySelectorAll('.status-buttons button').forEach(btn => btn.classList.remove('active'));
         button.classList.add('active');
         appData.attendanceData[currentDate][name] = status;
     }
 
-    // --- Шаг 2: Обновляем статистику и сохраняем данные в Firebase ---
     updateStats();
     saveData();
 }
-
 
 function setupEventListeners() {
     datePicker.addEventListener('change', e => { currentDate = e.target.value; render(); });
@@ -170,7 +167,7 @@ function setupEventListeners() {
         let reportText = `Отчет о посещаемости за ${formatDate(currentDate)}:\n\n`;
         (appData.students || []).forEach(name => {
             const statusKey = dayData[name];
-            const statusText = statusKey ? statuses[statusKey].text : 'Не отмечен';
+            const statusText = statusKey ? statuses[key].text : 'Не отмечен';
             reportText += `${name}: ${statusText}\n`;
         });
         navigator.clipboard.writeText(reportText).then(() => {
