@@ -45,7 +45,7 @@ let datePicker, prevDayBtn, nextDayBtn, sheetDateDisplay, studentListContainer,
     studentStatsList, studentChartCanvas, statsStartDate, statsEndDate, 
     downloadStudentChartBtn, studentStatsModalCloseBtn, downloadMainChartBtn;
 
-// --- 4. ФУНКЦИИ ПРИЛОЖЕНИЯ ---
+// --- 4. ФУНКЦИИ ПРИЛОЖЕНИЯ (без изменений) ---
 function saveData() { if (isAdmin) set(ref(database, 'journalData'), appData); }
 
 function render() {
@@ -356,12 +356,33 @@ function setupEventListeners() {
     if(studentStatsModal) studentStatsModal.onclick = e => { if (e.target === studentStatsModal) studentStatsModal.classList.remove('show'); };
     if(statsStartDate) statsStartDate.addEventListener('change', updateStudentStats);
     if(statsEndDate) statsEndDate.addEventListener('change', updateStudentStats);
+    
+    // ===== ИЗМЕНЕННЫЙ БЛОК ДЛЯ СКАЧИВАНИЯ СТАТИСТИКИ СТУДЕНТА =====
     if(downloadStudentChartBtn) downloadStudentChartBtn.addEventListener('click', () => {
+        const modalContent = studentStatsModal.querySelector('.modal-content');
+        const closeBtn = studentStatsModal.querySelector('.close-btn');
+        const actionButtons = studentStatsModal.querySelector('.data-buttons');
         const studentName = studentStatsModal.dataset.currentStudent.replace(' ', '_');
-        const link = document.createElement('a');
-        link.href = studentChart.toBase64Image();
-        link.download = `stats_${studentName}_${statsStartDate.value}_${statsEndDate.value}.png`;
-        link.click();
+        
+        // Временно скрываем ненужные элементы
+        closeBtn.style.visibility = 'hidden';
+        actionButtons.style.visibility = 'hidden';
+
+        // Используем html2canvas для всего модального окна
+        html2canvas(modalContent, { 
+            scale: 2, // Улучшаем качество
+            // Устанавливаем фон, чтобы избежать прозрачности
+            backgroundColor: window.getComputedStyle(modalContent).backgroundColor
+        }).then(canvas => {
+            const link = document.createElement('a');
+            link.href = canvas.toDataURL('image/png');
+            link.download = `stats_${studentName}_${statsStartDate.value}_to_${statsEndDate.value}.png`;
+            link.click();
+        }).finally(() => {
+            // Возвращаем видимость элементов в любом случае
+            closeBtn.style.visibility = 'visible';
+            actionButtons.style.visibility = 'visible';
+        });
     });
 
     if (isAdmin) {
