@@ -16,7 +16,7 @@
 }
 
 body.theme-dark {
-    --bg-color: #18191a;
+    --bg-color: #1819a;
     --card-bg-color: #242526;
     --primary-text-color: #e4e6eb;
     --secondary-text-color: #b0b3b8;
@@ -332,6 +332,7 @@ body.is-resizing {
     border: solid var(--card-bg-color);
     border-width: 0 3px 3px 0;
     transform: rotate(45deg);
+    margin-bottom: 4px; /* Коррекция для вертикального центрирования */
 }
 .duty-checkbox:hover + .checkmark {
     border-color: var(--accent-color);
@@ -339,15 +340,6 @@ body.is-resizing {
 .duty-checkbox:checked + .checkmark {
     background-color: var(--accent-color);
     border-color: var(--accent-color);
-}
-
-/* Индикатор дежурного для гостевого режима */
-.duty-indicator {
-    width: 18px;
-    height: 18px;
-    background-color: var(--accent-color);
-    border-radius: 50%;
-    display: block;
 }
 
 /* Общий стиль для выделения строки дежурного (для всех ролей) */
