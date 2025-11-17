@@ -21,14 +21,17 @@ const database = getDatabase(app);
 const urlParams = new URLSearchParams(window.location.search);
 const isAdmin = urlParams.get('admin') === 'true';
 
-// Центральное хранилище данных приложения
+// Центральное хранилище данных приложения (Единственный источник правды)
 let appData = {
     students: [],
     attendanceData: {},
     scheduleData: {}
 };
 
-// Функция для сохранения данных, передается в модули
+// ===== ИЗМЕНЕНИЕ ЗДЕСЬ: "Геттер" для данных =====
+// Эта функция позволяет другим модулям всегда получать свежие данные
+const getAppData = () => appData;
+
 function saveData() {
     if (isAdmin) {
         set(ref(database, 'journalData'), appData);
@@ -43,34 +46,31 @@ function init() {
         document.title += " [Admin]";
     }
 
-    // Инициализируем каждый модуль
-    const journalAPI = initJournal(appData, saveData);
-    const scheduleAPI = initSchedule(appData, saveData);
-    initUI(appData, saveData, isAdmin);
+    // Инициализируем каждый модуль, передавая им функцию для доступа к данным
+    const journalAPI = initJournal(getAppData, saveData);
+    const scheduleAPI = initSchedule(getAppData, saveData);
+    initUI(getAppData, saveData, isAdmin);
 
-    // Главный слушатель данных из Firebase
     const appDataRef = ref(database, 'journalData');
     onValue(appDataRef, (snapshot) => {
-        const data = snapshot.val();
+        const data = snapshot.val() || {}; // Если база пуста, data будет пустым объектом
         
-        // Обновляем глобальное состояние с данными из Firebase или значениями по умолчанию
-        appData.students = (data && data.students) || [];
-        appData.attendanceData = (data && data.attendanceData) || {};
-        appData.scheduleData = (data && data.scheduleData) || {};
+        // Обновляем глобальное состояние
+        appData.students = data.students || [];
+        appData.attendanceData = data.attendanceData || {};
+        appData.scheduleData = data.scheduleData || {};
 
-        if (!data && isAdmin) {
-            saveData(); // Первоначальное сохранение, если база пуста
+        if (!snapshot.val() && isAdmin) {
+            saveData(); 
         }
 
-        // Получаем текущие даты из модулей
         const currentDate = journalAPI.getCurrentDate();
         const currentWeekStart = scheduleAPI.getCurrentWeekStart();
 
         // Перерисовываем интерфейс с новыми данными
-        renderJournal(appData, currentDate);
-        renderSchedule(appData, currentWeekStart);
+        renderJournal(currentDate);
+        renderSchedule(currentWeekStart);
     });
 }
 
-// Запускаем приложение после полной загрузки страницы
 document.addEventListener('DOMContentLoaded', init);
