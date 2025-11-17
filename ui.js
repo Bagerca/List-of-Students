@@ -51,7 +51,13 @@ function hexToRgba(hex, alpha = 0.2) {
 export function renderChart() {
     const appData = getAppData();
     if (attendanceChart) attendanceChart.destroy();
-    if (!chartCanvas || !chartStartDate.value || !chartEndDate.value) return;
+    if (!chartCanvas || !chartStartDate.value || !chartEndDate.value) {
+        if(chartCanvas) { // Очищаем холст, если дат нет
+            const ctx = chartCanvas.getContext('2d');
+            ctx.clearRect(0, 0, chartCanvas.width, chartCanvas.height);
+        }
+        return;
+    }
 
     const labels = [];
     const statusCounts = { present: [], late: [], absent: [], sick: [], excused: [] };
@@ -77,9 +83,10 @@ export function renderChart() {
         }
     });
 
+    const statuses = { present: { text: 'Присутствовал' }, late: { text: 'Опоздал' }, absent: { text: 'Отсутствовал' }, sick: { text: 'Болел' }, excused: { text: 'Уваж. причина' } };
     const statusColors = { present: '#198754', late: '#ffc107', absent: '#dc3545', sick: '#0dcaf0', excused: '#6c757d' };
     const datasets = Object.keys(statusCounts).map(key => ({
-        label: key.charAt(0).toUpperCase() + key.slice(1),
+        label: statuses[key].text,
         data: statusCounts[key],
         backgroundColor: statusColors[key],
         borderColor: statusColors[key],
@@ -106,8 +113,9 @@ export function renderChart() {
     });
 }
 
-function renderStudentChart(stats, statuses) {
+function renderStudentChart(stats) {
     if (studentChart) studentChart.destroy();
+    const statuses = { present: { text: 'Присутствовал' }, late: { text: 'Опоздал' }, absent: { text: 'Отсутствовал' }, sick: { text: 'Болел' }, excused: { text: 'Уваж. причина' } };
     const statusColors = { present: '#198754', late: '#ffc107', absent: '#dc3545', sick: '#0dcaf0', excused: '#6c757d' };
     const chartData = { labels: [], datasets: [{ data: [], backgroundColor: [] }] };
     for (const status in stats) {
@@ -156,7 +164,6 @@ function updateStudentStats() {
     });
 
     const totalAbsences = stats.absent + stats.sick + stats.excused;
-    const statuses = { present: { text: 'Присутствовал' }, late: { text: 'Опоздал' }, absent: { text: 'Отсутствовал' }, sick: { text: 'Болел' }, excused: { text: 'Уваж. причина' } };
     studentStatsList.innerHTML = `
         <li>Присутствовал: <strong>${Number(stats.present.toFixed(1))} дн.</strong></li>
         <li>Опоздал: <strong>${Number(stats.late.toFixed(1))} раз</strong></li>
@@ -165,7 +172,7 @@ function updateStudentStats() {
         <li style="padding-left: 20px;">- По ув. причине: <strong>${Number(stats.excused.toFixed(1))} дн.</strong></li>
         <li style="padding-left: 20px;">- Без причины: <strong>${Number(stats.absent.toFixed(1))} дн.</strong></li>
     `;
-    renderStudentChart(stats, statuses);
+    renderStudentChart(stats);
 }
 
 export function openStudentStatsModal(studentName) {
