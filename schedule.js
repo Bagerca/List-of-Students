@@ -1,8 +1,7 @@
 // schedule.js
 
 let currentWeekStart;
-let getAppData;
-let saveData;
+let getAppData, saveData;
 
 let scheduleContainer, weekDisplay, prevWeekBtn, nextWeekBtn;
 
@@ -112,7 +111,6 @@ export function initSchedule(_getAppData, _saveData) {
         }
 
         if (e.target.closest('.cancel-btn')) {
-            // Сбрасываем значения на те, что были до редактирования
             const originalData = appData.scheduleData[dayIndex] || { lessons: [], homework: '' };
             card.querySelector('.lessons-editor').value = (originalData.lessons || []).join('\n');
             card.querySelector('.homework-editor').value = originalData.homework || '';
@@ -135,7 +133,6 @@ export function initSchedule(_getAppData, _saveData) {
             }
             
             saveData();
-            // Выход из режима редактирования произойдет автоматически при следующем рендере
         }
     });
 
