@@ -44,7 +44,7 @@ let datePicker, prevDayBtn, nextDayBtn, sheetDateDisplay, studentListContainer,
     importDataBtn, importFileInput, studentStatsModal, studentStatsName, 
     studentStatsList, studentChartCanvas, statsStartDate, statsEndDate, 
     downloadStudentChartBtn, studentStatsModalCloseBtn, downloadMainChartBtn,
-    saveSettingsBtn, scheduleEditor;
+    saveSettingsBtn, scheduleEditor, scheduleDisplay;
 
 // --- 4. ФУНКЦИИ ПРИЛОЖЕНИЯ ---
 function isSchoolDay(dateString) {
@@ -54,6 +54,19 @@ function isSchoolDay(dateString) {
 }
 
 function saveData() { if (isAdmin) set(ref(database, 'journalData'), appData); }
+
+function renderScheduleDisplay() {
+    if (!scheduleDisplay) return;
+    const schedule = appData.schedule || [];
+    scheduleDisplay.querySelectorAll('span').forEach(daySpan => {
+        const day = Number(daySpan.dataset.day);
+        if (schedule.includes(day)) {
+            daySpan.classList.add('active-day');
+        } else {
+            daySpan.classList.remove('active-day');
+        }
+    });
+}
 
 function render() {
     sheetDateDisplay.textContent = formatDate(currentDate);
@@ -349,6 +362,7 @@ function cacheDOMElements() {
     statsContainer = document.getElementById('stats');
     settingsBtn = document.getElementById('settings-btn');
     themeToggleBtn = document.getElementById('theme-toggle-btn');
+    scheduleDisplay = document.getElementById('schedule-display');
     chartCanvas = document.getElementById('attendance-chart');
     chartStartDate = document.getElementById('chart-start-date');
     chartEndDate = document.getElementById('chart-end-date');
@@ -547,6 +561,9 @@ function init() {
         if (!data && isAdmin) {
             saveData();
         }
+        
+        renderScheduleDisplay(); // Обновляем отображение расписания в шапке
+        
         const allDates = Object.keys(appData.attendanceData || {}).sort();
         if (allDates.length > 0) {
             chartStartDate.value = allDates[0];
