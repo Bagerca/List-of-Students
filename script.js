@@ -321,7 +321,6 @@ function handleStatusClick(e) {
     saveData();
 }
 
-
 // --- 5. ФУНКЦИИ ИНИЦИАЛИЗАЦИИ ---
 
 function cacheDOMElements() {
@@ -489,4 +488,44 @@ function setupEventListeners() {
     }
 }
 
-function updateLin
+function updateLineNumbers() {
+    if (isAdmin && studentListEditor && lineNumbers) {
+        const lineCount = studentListEditor.value.split('\n').length;
+        lineNumbers.innerHTML = Array.from({ length: lineCount }, (_, i) => `<span>${i + 1}</span>`).join('');
+    }
+}
+
+function init() {
+    cacheDOMElements();
+    applyTheme(localStorage.getItem('theme') || 'light');
+    if (!isAdmin) {
+        document.body.classList.add('guest-mode');
+    } else {
+        document.title += " [Admin]";
+    }
+    const appDataRef = ref(database, 'journalData');
+    onValue(appDataRef, (snapshot) => {
+        const data = snapshot.val();
+        appData = {
+            students: (data && data.students) || [],
+            attendanceData: (data && data.attendanceData) || {}
+        };
+        if (!data && isAdmin) {
+            saveData();
+        }
+        const allDates = Object.keys(appData.attendanceData || {}).sort();
+        if (allDates.length > 0) {
+            chartStartDate.value = allDates[0];
+            chartEndDate.value = allDates[allDates.length - 1] > currentDate ? allDates[allDates.length - 1] : currentDate;
+        } else {
+            chartStartDate.value = currentDate;
+            chartEndDate.value = currentDate;
+        }
+        render();
+        renderChart();
+    });
+    datePicker.value = currentDate;
+    setupEventListeners();
+}
+
+document.addEventListener('DOMContentLoaded', init);
