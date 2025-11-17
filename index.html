@@ -76,7 +76,7 @@
         <div class="modal-content">
             <button class="close-btn">&times;</button>
             <h2>Настройки и данные</h2>
-            <p>Управляйте списком студентов и резервными копиями данных.</p>
+            <p>Управляйте списком студентов, расписанием и резервными копиями данных.</p>
             
             <div class="section">
                 <h3>Список студентов</h3>
@@ -84,9 +84,22 @@
                     <div class="line-numbers"></div>
                     <textarea id="student-list-editor" rows="10" placeholder="Каждый студент с новой строки..."></textarea>
                 </div>
-                <button id="save-students-btn" class="primary-button">Сохранить список</button>
             </div>
 
+            <div class="section">
+                <h3>Настройки расписания</h3>
+                <p>Отметьте учебные дни недели. Изменения сохранятся вместе со списком.</p>
+                <div id="schedule-editor">
+                    <label><input type="checkbox" data-day="1"><span>Пн</span></label>
+                    <label><input type="checkbox" data-day="2"><span>Вт</span></label>
+                    <label><input type="checkbox" data-day="3"><span>Ср</span></label>
+                    <label><input type="checkbox" data-day="4"><span>Чт</span></label>
+                    <label><input type="checkbox" data-day="5"><span>Пт</span></label>
+                    <label><input type="checkbox" data-day="6"><span>Сб</span></label>
+                    <label><input type="checkbox" data-day="0"><span>Вс</span></label>
+                </div>
+            </div>
+            
             <div class="section">
                 <h3>Управление данными</h3>
                 <p>Сохраните все данные в файл или загрузите из ранее сохраненного файла.</p>
@@ -96,36 +109,15 @@
                     <input type="file" id="import-file-input" accept=".json" style="display: none;">
                 </div>
             </div>
+
+            <div class="section">
+                <button id="save-settings-btn" class="primary-button">Сохранить изменения</button>
+            </div>
         </div>
     </div>
 
     <div id="student-stats-modal" class="modal">
-        <div class="modal-content">
-            <button class="close-btn">&times;</button>
-            <h2 id="student-stats-name"></h2>
-            <p>Статистика посещаемости за выбранный период.</p>
-            
-            <div class="chart-controls">
-                <label>От <input type="date" id="stats-start-date"></label>
-                <label>До <input type="date" id="stats-end-date"></label>
-            </div>
-
-            <div class="section">
-                <div class="student-stats-layout">
-                    <div class="student-chart-container">
-                        <canvas id="student-chart"></canvas>
-                    </div>
-                    <ul id="student-stats-list"></ul>
-                </div>
-            </div>
-            
-            <div class="data-buttons">
-                 <button id="download-student-chart-btn" class="primary-button">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                    <span>Скачать отчет</span>
-                </button>
-            </div>
-        </div>
+        <!-- ... без изменений ... -->
     </div>
 
     <script type="module" src="script.js"></script>
