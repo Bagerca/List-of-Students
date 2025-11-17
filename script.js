@@ -19,7 +19,7 @@ const database = getDatabase(app);
 const urlParams = new URLSearchParams(window.location.search);
 const isAdmin = urlParams.get('admin') === 'true';
 const isScheduleEditor = urlParams.get('schedule_editor') === 'true';
-let appData = { students: [], attendanceData: {}, schedule: {} };
+let appData = { students: [], attendanceData: {}, schedule: {}, dutyAssignments: {} };
 let currentDate = new Date().toISOString().split('T')[0];
 let attendanceChart = null;
 let studentChart = null;
@@ -47,7 +47,8 @@ let datePicker, prevDayBtn, nextDayBtn, sheetDateDisplay, studentListContainer,
     studentStatsList, studentChartCanvas, statsStartDate, statsEndDate, 
     downloadStudentChartBtn, studentStatsModalCloseBtn, downloadMainChartBtn,
     scheduleContainer, editScheduleBtn, scheduleModal, scheduleModalCloseBtn,
-    scheduleEditorContainer, saveScheduleBtn;
+    scheduleEditorContainer, saveScheduleBtn,
+    editDutyBtn, dutyModal, dutyModalDate, dutyStudentList, saveDutyAssignmentBtn, dutyModalCloseBtn;
 
 // --- 4. ФУНКЦИИ ПРИЛОЖЕНИЯ ---
 function saveData() { 
@@ -56,8 +57,11 @@ function saveData() {
 
 function render() {
     const { students = [], attendanceData = {} } = appData;
+    const onDutyStudents = appData.dutyAssignments?.[currentDate] || [];
+
     sheetDateDisplay.textContent = formatDate(currentDate);
     studentListContainer.innerHTML = '';
+    
     if (students.length === 0) {
         studentListContainer.innerHTML = `<p style="text-align:center; color: var(--secondary-text-color); padding: 20px;">Список учеников пуст. Добавьте их в настройках.</p>`;
     } else {
@@ -65,6 +69,11 @@ function render() {
             const row = document.createElement('div');
             row.className = 'student-row';
             row.dataset.name = name;
+
+            if (onDutyStudents.includes(name)) {
+                row.classList.add('on-duty');
+            }
+
             const currentDayData = attendanceData[currentDate] || {};
             const studentStatus = currentDayData[name];
 
@@ -418,6 +427,42 @@ function saveScheduleChanges() {
     scheduleModal.classList.remove('show');
 }
 
+function openDutyModal() {
+    dutyModalDate.textContent = formatDate(currentDate);
+    const studentList = appData.students || [];
+    const currentDutyStudents = appData.dutyAssignments?.[currentDate] || [];
+    
+    dutyStudentList.innerHTML = studentList.map(name => `
+        <div class="duty-student-item">
+            <input type="checkbox" id="duty-${name.replace(/\s+/g, '-')}" value="${name}" ${currentDutyStudents.includes(name) ? 'checked' : ''}>
+            <label for="duty-${name.replace(/\s+/g, '-')}">${name}</label>
+        </div>
+    `).join('');
+    
+    dutyModal.classList.add('show');
+}
+
+function saveDutyAssignment() {
+    const selectedStudents = [];
+    const checkboxes = dutyStudentList.querySelectorAll('input[type="checkbox"]:checked');
+    checkboxes.forEach(checkbox => {
+        selectedStudents.push(checkbox.value);
+    });
+
+    if (!appData.dutyAssignments) {
+        appData.dutyAssignments = {};
+    }
+
+    if (selectedStudents.length > 0) {
+        appData.dutyAssignments[currentDate] = selectedStudents;
+    } else {
+        delete appData.dutyAssignments[currentDate];
+    }
+    
+    saveData();
+    dutyModal.classList.remove('show');
+}
+
 // --- 5. ФУНКЦИИ ИНИЦИАЛИЗАЦИИ ---
 
 function cacheDOMElements() {
@@ -454,6 +499,12 @@ function cacheDOMElements() {
         exportDataBtn = document.getElementById('export-data-btn');
         importDataBtn = document.getElementById('import-data-btn');
         importFileInput = document.getElementById('import-file-input');
+        editDutyBtn = document.getElementById('edit-duty-btn');
+        dutyModal = document.getElementById('duty-modal');
+        dutyModalDate = document.getElementById('duty-modal-date');
+        dutyStudentList = document.getElementById('duty-student-list');
+        saveDutyAssignmentBtn = document.getElementById('save-duty-assignment-btn');
+        dutyModalCloseBtn = dutyModal.querySelector('.close-btn');
     }
     
     if (isAdmin || isScheduleEditor) {
@@ -592,6 +643,13 @@ function setupEventListeners() {
             reader.readAsText(file);
             importFileInput.value = '';
         };
+        
+        if (editDutyBtn) editDutyBtn.addEventListener('click', openDutyModal);
+        if (dutyModalCloseBtn) dutyModalCloseBtn.addEventListener('click', () => dutyModal.classList.remove('show'));
+        if (dutyModal) dutyModal.addEventListener('click', (e) => {
+            if (e.target === dutyModal) dutyModal.classList.remove('show');
+        });
+        if (saveDutyAssignmentBtn) saveDutyAssignmentBtn.addEventListener('click', saveDutyAssignment);
     }
     
     if (isAdmin || isScheduleEditor) {
@@ -684,7 +742,8 @@ function init() {
         appData = {
             students: data.students || [],
             attendanceData: data.attendanceData || {},
-            schedule: data.schedule || {}
+            schedule: data.schedule || {},
+            dutyAssignments: data.dutyAssignments || {}
         };
         if (!snapshot.val() && isAdmin) {
             saveData();
