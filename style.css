@@ -120,7 +120,13 @@ button.status-excused.active { background-color: var(--grey); border-color: var(
 
 .guest-mode #settings-btn { display: none; }
 .guest-mode .status-buttons button { pointer-events: none; }
-.guest-mode .modal-content button, .guest-mode .modal-content textarea { pointer-events: none; opacity: 0.7; }
+
+/* ===== ИСПРАВЛЕННАЯ СТРОКА ЗДЕСЬ ===== */
+/* Теперь блокируются элементы ТОЛЬКО в окне настроек #settings-modal */
+.guest-mode #settings-modal button, .guest-mode #settings-modal textarea {
+    pointer-events: none;
+    opacity: 0.7;
+}
 
 .student-name.clickable { cursor: pointer; text-decoration: none; transition: color 0.2s ease; }
 .student-name.clickable:hover { color: var(--accent-color); }
