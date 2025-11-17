@@ -1,6 +1,9 @@
 // schedule.js
 
 let currentWeekStart;
+let getAppData;
+let saveData;
+
 let scheduleContainer, weekDisplay, prevWeekBtn, nextWeekBtn;
 
 const weekDays = ["Воскресенье", "Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота"];
@@ -8,7 +11,7 @@ const weekDays = ["Воскресенье", "Понедельник", "Втор�
 function getWeekStart(date) {
     const d = new Date(date + 'T00:00:00');
     const day = d.getDay();
-    const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Понедельник - первый день недели
+    const diff = d.getDate() - day + (day === 0 ? -6 : 1);
     return new Date(d.setDate(diff));
 }
 
@@ -16,7 +19,8 @@ function formatDate(date) {
     return date.toLocaleDateString('ru-RU', { month: 'short', day: 'numeric' });
 }
 
-export function renderSchedule(appData) {
+export function renderSchedule() {
+    const appData = getAppData();
     const start = currentWeekStart;
     const end = new Date(start);
     end.setDate(start.getDate() + 6);
@@ -41,7 +45,7 @@ export function renderSchedule(appData) {
                 <span class="date">${dayDate.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })}</span>
             </div>`;
         
-        if (dayData && dayData.lessons && dayData.lessons.length > 0) {
+        if (dayData && dayData.lessons) {
             const lessonsList = Array.isArray(dayData.lessons) ? dayData.lessons.join('\n') : dayData.lessons;
             card.innerHTML += `
                 <ul class="lessons-list">
@@ -73,25 +77,15 @@ export function renderSchedule(appData) {
     }
 }
 
-function changeWeek(offset, appData) {
+function changeWeek(offset) {
     currentWeekStart.setDate(currentWeekStart.getDate() + offset * 7);
-    renderSchedule(appData);
+    renderSchedule();
 }
 
-function enterEditMode(card) {
-    card.classList.add('is-editing');
-}
+export function initSchedule(_getAppData, _saveData) {
+    getAppData = _getAppData;
+    saveData = _saveData;
 
-function exitEditMode(card) {
-    card.classList.remove('is-editing');
-    // Сбрасываем значения textarea на случай, если пользователь нажал "Отмена"
-    const dayIndex = card.dataset.dayIndex;
-    const dayData = window.appDataForSchedule.scheduleData[dayIndex] || { lessons: [], homework: '' };
-    card.querySelector('.lessons-editor').value = Array.isArray(dayData.lessons) ? dayData.lessons.join('\n') : '';
-    card.querySelector('.homework-editor').value = dayData.homework || '';
-}
-
-export function initSchedule(appData, saveData) {
     scheduleContainer = document.getElementById('schedule-container');
     weekDisplay = document.getElementById('week-display');
     prevWeekBtn = document.getElementById('prev-week-btn');
@@ -99,22 +93,21 @@ export function initSchedule(appData, saveData) {
     
     currentWeekStart = getWeekStart(new Date().toISOString().split('T')[0]);
 
-    prevWeekBtn.addEventListener('click', () => changeWeek(-1, appData));
-    nextWeekBtn.addEventListener('click', () => changeWeek(1, appData));
+    prevWeekBtn.addEventListener('click', () => changeWeek(-1));
+    nextWeekBtn.addEventListener('click', () => changeWeek(1));
 
     scheduleContainer.addEventListener('click', (e) => {
+        const appData = getAppData();
         const card = e.target.closest('.day-card');
         if (!card) return;
 
         const dayIndex = card.dataset.dayIndex;
 
         if (e.target.classList.contains('edit-schedule-btn')) {
-            enterEditMode(card);
+            card.classList.add('is-editing');
         }
 
         if (e.target.classList.contains('cancel-btn')) {
-            // Просто выходим из режима редактирования, не сохраняя
-            // Данные сбросятся при следующем рендере, либо можно сделать это вручную
             card.classList.remove('is-editing');
         }
 
@@ -124,8 +117,8 @@ export function initSchedule(appData, saveData) {
 
             const newLessons = lessonsText.split('\n').map(s => s.trim()).filter(Boolean);
 
-            if (newLessons.length === 0 && !homeworkText) {
-                appData.scheduleData[dayIndex] = null; // День стал выходным
+            if (newLessons.length === 0 && !homeworkText.trim()) {
+                appData.scheduleData[dayIndex] = null;
             } else {
                 appData.scheduleData[dayIndex] = {
                     lessons: newLessons,
@@ -134,7 +127,6 @@ export function initSchedule(appData, saveData) {
             }
             
             saveData();
-            // Выходить из режима редактирования не нужно, т.к. onValue из main.js все перерисует
         }
     });
 
