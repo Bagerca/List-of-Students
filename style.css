@@ -33,7 +33,7 @@ body {
     padding: 20px;
     transition: background-color 0.3s, color 0.3s;
 }
-.container { max-width: 900px; margin: 0 auto; }
+.container { max-width: 900px; margin: 0 auto; transition: max-width 0.3s ease; }
 
 header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
 header h1 { font-size: 1.8rem; font-weight: 700; }
@@ -140,7 +140,7 @@ button.status-excused.active { background-color: var(--grey); }
 .guest-mode #settings-btn { display: none; }
 .guest-mode .status-buttons button { pointer-events: none; }
 .guest-mode #settings-modal button, .guest-mode #settings-modal textarea { pointer-events: none; opacity: 0.7; }
-.guest-mode #edit-schedule-btn { display: none; } /* Скрываем кнопку редактирования расписания для гостей */
+.guest-mode #edit-schedule-btn { display: none; }
 
 .student-name.clickable { cursor: pointer; text-decoration: none; transition: color 0.2s ease; }
 .student-name.clickable:hover { color: var(--accent-color); }
@@ -151,8 +151,6 @@ button.status-excused.active { background-color: var(--grey); }
 #student-stats-list li:last-child { border-bottom: none; }
 #student-stats-list strong { font-weight: 600; }
 
-
-/* НОВЫЕ СТИЛИ ДЛЯ РАСПИСАНИЯ */
 .schedule-section {
     margin-top: 24px;
     padding: 24px;
@@ -214,7 +212,6 @@ button.status-excused.active { background-color: var(--grey); }
     padding: 20px 0;
 }
 
-/* Стили для модального окна редактирования */
 .modal-content.wide { max-width: 800px; }
 #schedule-editor-container { max-height: 60vh; overflow-y: auto; padding-right: 15px; }
 .editor-day-section { margin-bottom: 20px; }
@@ -224,8 +221,12 @@ button.status-excused.active { background-color: var(--grey); }
 .lesson-editor-row textarea { resize: vertical; min-height: 40px; }
 .delete-lesson-btn { font-size: 1.5rem; line-height: 1; background: none; border: none; color: var(--red); cursor: pointer; padding: 0 5px; }
 .add-lesson-btn { margin-top: 10px; }
-/* КОНЕЦ НОВЫХ СТИЛЕЙ */
 
+@media (max-width: 991px) {
+    .left-column .section-actions {
+        margin-bottom: 24px;
+    }
+}
 
 @media (max-width: 600px) {
     body { padding: 10px; }
@@ -235,7 +236,32 @@ button.status-excused.active { background-color: var(--grey); }
     .section-actions { flex-direction: column; gap: 10px; }
     .section-actions button { width: 100%; justify-content: center; }
     .student-stats-layout { flex-direction: column; }
-    .lesson-editor-row { grid-template-columns: 1fr 1fr; } /* Адаптация редактора */
+    .lesson-editor-row { grid-template-columns: 1fr 1fr; }
     .lesson-editor-row textarea { grid-column: 1 / 3; }
     .lesson-editor-row .delete-lesson-btn { grid-column: 2 / 3; justify-self: end; }
+}
+
+/* СТИЛИ ДЛЯ ДВУХКОЛОНОЧНОГО МАКЕТА НА ПК */
+@media (min-width: 992px) {
+    .container {
+        max-width: 1300px;
+    }
+
+    .main-content-grid {
+        display: grid;
+        grid-template-columns: 1.8fr 1fr;
+        gap: 24px;
+        align-items: flex-start;
+    }
+
+    .right-column {
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+    }
+    
+    .chart-section, 
+    .schedule-section {
+        margin-top: 0;
+    }
 }
