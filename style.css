@@ -77,45 +77,58 @@ body.theme-dark .student-row:hover { background-color: rgba(255,255,255,0.05); }
 .student-name { flex-grow: 1; font-size: 1rem; font-weight: 500; }
 .status-buttons { display: flex; gap: 8px; }
 
+/* ===== ФИНАЛЬНОЕ РЕШЕНИЕ ДЛЯ КНОПОК ===== */
 .status-buttons button { 
     width: 36px; height: 36px; border-radius: 8px; 
     border: 1px solid var(--border-color); 
-    background: var(--card-bg-color);
+    background-color: var(--card-bg-color); 
     cursor: pointer; display: flex; align-items: center; justify-content: center; 
     color: var(--secondary-text-color); 
     transition: all 0.2s ease;
+    position: relative; /* База для псевдоэлемента */
+    overflow: hidden; /* Скрывает все, что выходит за рамки */
 }
 .status-buttons button:hover { border-color: var(--accent-color); color: var(--accent-color); }
 
-.status-buttons button.active,
-.status-buttons button.active-half { 
-    color: white; 
-    border-color: transparent;
-}
-.status-buttons .status-late.active,
-.status-buttons .status-late.active-half {
-    color: #333;
+/* SVG иконка должна быть поверх цветного слоя */
+.status-buttons button svg {
+    position: relative;
+    z-index: 2;
 }
 
-button.status-present.active { background: var(--green); }
-button.status-late.active { background: var(--yellow); }
-button.status-absent.active { background: var(--red); }
-button.status-sick.active { background: var(--blue); }
-button.status-excused.active { background: var(--grey); }
+/* Полностью активная кнопка */
+.status-buttons button.active { color: white; border-color: transparent; }
+.status-buttons .status-late.active { color: #333; }
 
-/* ===== ИСПРАВЛЕННЫЙ БЛОК ===== */
-.status-buttons button.status-half-left { background: linear-gradient(to right, var(--color-var) 50%, var(--card-bg-color) 50.5%); }
-.status-buttons button.status-half-right { background: linear-gradient(to left, var(--color-var) 50%, var(--card-bg-color) 50.5%); }
+button.status-present.active { background-color: var(--green); }
+button.status-late.active { background-color: var(--yellow); }
+button.status-absent.active { background-color: var(--red); }
+button.status-sick.active { background-color: var(--blue); }
+button.status-excused.active { background-color: var(--grey); }
 
-.status-buttons .status-present.active-half { --color-var: var(--green); }
-.status-buttons .status-late.active-half { --color-var: var(--yellow); }
-.status-buttons .status-absent.active-half { --color-var: var(--red); }
-.status-buttons .status-sick.active-half { --color-var: var(--blue); }
-.status-buttons .status-excused.active-half { --color-var: var(--grey); }
-/* ===== КОНЕЦ ИСПРАВЛЕННОГО БЛОКА ===== */
+/* Базовый стиль для цветной половинки (псевдоэлемент) */
+.status-buttons button.active-half::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    height: 100%;
+    width: 50%;
+    z-index: 1;
+}
+/* Позиционируем половинку слева или справа */
+.status-buttons button.status-half-left::before { left: 0; }
+.status-buttons button.status-half-right::before { right: 0; }
 
-.status-buttons button svg { width: 20px; height: 20px; }
+/* Задаем цвет для половинки */
+.status-buttons button.active-half { border-color: transparent; color: white; }
+.status-buttons .status-late.active-half { color: #333; }
 
+.status-buttons .status-present.active-half::before { background-color: var(--green); }
+.status-buttons .status-late.active-half::before { background-color: var(--yellow); }
+.status-buttons .status-absent.active-half::before { background-color: var(--red); }
+.status-buttons .status-sick.active-half::before { background-color: var(--blue); }
+.status-buttons .status-excused.active-half::before { background-color: var(--grey); }
+/* ===== КОНЕЦ ФИНАЛЬНОГО РЕШЕНИЯ ===== */
 
 .chart-section { margin-top: 24px; padding: 24px; background-color: var(--card-bg-color); border-radius: 12px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); }
 .chart-section h2 { margin-bottom: 16px; font-size: 1.5rem; }
