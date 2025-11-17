@@ -5,7 +5,7 @@ let getAppData, saveData;
 let themeToggleBtn, settingsBtn, settingsModal, closeModalBtn,
     studentListEditor, lineNumbers, saveStudentsBtn,
     exportDataBtn, importDataBtn, importFileInput,
-    chartCanvas, chartStartDate, chartEndDate;
+    chartCanvas, chartStartDate, chartEndDate, downloadMainChartBtn;
 
 let attendanceChart = null;
     
@@ -29,6 +29,20 @@ function updateLineNumbers() {
         const lineCount = studentListEditor.value.split('\n').length;
         lineNumbers.innerHTML = Array.from({ length: lineCount }, (_, i) => `<span>${i + 1}</span>`).join('');
     }
+}
+
+export function setChartDateRange(start, end) {
+    if (chartStartDate && chartEndDate) {
+        chartStartDate.value = start;
+        chartEndDate.value = end;
+    }
+}
+
+function hexToRgba(hex, alpha = 0.2) {
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
 export function renderChart() {
@@ -100,6 +114,7 @@ export function initUI(_getAppData, _saveData, isAdmin) {
     chartCanvas = document.getElementById('attendance-chart');
     chartStartDate = document.getElementById('chart-start-date');
     chartEndDate = document.getElementById('chart-end-date');
+    downloadMainChartBtn = document.getElementById('download-main-chart-btn');
     
     applyTheme(localStorage.getItem('theme') || 'light');
     themeToggleBtn.addEventListener('click', toggleTheme);
@@ -110,6 +125,15 @@ export function initUI(_getAppData, _saveData, isAdmin) {
     
     chartStartDate.addEventListener('change', renderChart);
     chartEndDate.addEventListener('change', renderChart);
+
+    downloadMainChartBtn.addEventListener('click', () => {
+        if (attendanceChart) {
+            const link = document.createElement('a');
+            link.href = attendanceChart.toBase64Image('image/png', 1);
+            link.download = `attendance_chart_${chartStartDate.value}_to_${chartEndDate.value}.png`;
+            link.click();
+        }
+    });
 
     if (isAdmin) {
         studentListEditor = document.getElementById('student-list-editor');
