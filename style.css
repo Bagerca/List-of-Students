@@ -228,6 +228,14 @@ button.status-excused.active { background-color: var(--grey); }
     display: none;
 }
 
+.resizer {
+    display: none; 
+}
+body.is-resizing {
+    user-select: none;
+    cursor: col-resize;
+}
+
 @media (max-width: 991px) {
     .left-column .section-actions {
         margin-bottom: 24px;
@@ -252,9 +260,13 @@ button.status-excused.active { background-color: var(--grey); }
     }
     .main-content-grid {
         display: grid;
-        grid-template-columns: 1.8fr 1fr;
-        gap: 24px;
-        align-items: flex-start;
+        grid-template-columns: 1.8fr 10px 1fr;
+        gap: 0;
+        align-items: stretch;
+        height: 100%;
+    }
+    .left-column, .right-column {
+        padding: 0 12px;
     }
     .right-column {
         display: flex;
@@ -264,5 +276,14 @@ button.status-excused.active { background-color: var(--grey); }
     .chart-section, 
     .schedule-section {
         margin-top: 0;
+    }
+    .resizer {
+        display: block;
+        background-color: var(--border-color);
+        cursor: col-resize;
+        transition: background-color 0.2s ease;
+    }
+    .resizer:hover {
+        background-color: var(--accent-color);
     }
 }
