@@ -28,9 +28,9 @@ function updateLineNumbers() {
     }
 }
 
-// Функции для графика (почти без изменений, но вынесены сюда)
+// Chart functions remain here
 function renderChart(appData) {
-    // ... логика графика ...
+    // ... chart rendering logic ...
 }
 
 export function initUI(appData, saveData, isAdmin) {
@@ -54,18 +54,31 @@ export function initUI(appData, saveData, isAdmin) {
         importDataBtn = document.getElementById('import-data-btn');
         importFileInput = document.getElementById('import-file-input');
         
+        // ===== THIS IS THE CORRECTED BLOCK =====
         settingsBtn.onclick = () => {
+            // Populate student list
             studentListEditor.value = (appData.students || []).join('\n');
             updateLineNumbers();
+            
+            // This part was missing and is now restored
+            const scheduleEditor = document.getElementById('schedule-editor');
+            if (scheduleEditor) {
+                const schedule = appData.schedule || [];
+                 scheduleEditor.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+                    checkbox.checked = schedule.includes(Number(checkbox.dataset.day));
+                });
+            }
+            
             settingsModal.classList.add('show');
         };
+        // ===== END OF CORRECTION =====
 
         studentListEditor.addEventListener('input', updateLineNumbers);
 
         saveStudentsBtn.onclick = () => {
             appData.students = studentListEditor.value.split('\n').map(s => s.trim()).filter(Boolean);
             saveData();
-            alert('Список студентов сохранен!');
+            alert('Student list saved!');
         };
         
         exportDataBtn.onclick = () => {
@@ -88,14 +101,13 @@ export function initUI(appData, saveData, isAdmin) {
                 try {
                     const importedData = JSON.parse(e.target.result);
                     if (importedData.students && importedData.attendanceData && importedData.scheduleData) {
-                        // Обновляем все части appData
                         appData.students = importedData.students;
                         appData.attendanceData = importedData.attendanceData;
                         appData.scheduleData = importedData.scheduleData;
                         saveData();
                         settingsModal.classList.remove('show');
-                    } else { alert('Ошибка: неверный формат файла.'); }
-                } catch (error) { alert('Ошибка при чтении файла.'); }
+                    } else { alert('Invalid file format.'); }
+                } catch (error) { alert('Error reading file.'); }
             };
             reader.readAsText(file);
             importFileInput.value = '';
