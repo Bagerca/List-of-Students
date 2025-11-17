@@ -45,7 +45,7 @@ let datePicker, prevDayBtn, nextDayBtn, sheetDateDisplay, studentListContainer,
     studentStatsList, studentChartCanvas, statsStartDate, statsEndDate, 
     downloadStudentChartBtn, studentStatsModalCloseBtn, downloadMainChartBtn;
 
-// --- 4. ФУНКЦИИ ПРИЛОЖЕНИЯ (без изменений) ---
+// --- 4. ФУНКЦИИ ПРИЛОЖЕНИЯ ---
 function saveData() { if (isAdmin) set(ref(database, 'journalData'), appData); }
 
 function render() {
@@ -60,12 +60,25 @@ function render() {
             row.className = 'student-row';
             row.dataset.name = name;
             const currentDayData = attendanceData[currentDate] || {};
+            const studentStatus = currentDayData[name];
+
             row.innerHTML = `<div class="student-name clickable">${name}</div><div class="status-buttons">
-                ${Object.keys(statuses).map(key => `
-                    <button class="status-${key} ${currentDayData[name] === key ? 'active' : ''}" data-status="${key}" title="${statuses[key].text}">
-                        ${statusIcons[key]}
-                    </button>
-                `).join('')}</div>`;
+                ${Object.keys(statuses).map(key => {
+                    let classes = `status-${key}`;
+                    if (typeof studentStatus === 'string' && studentStatus === key) {
+                        classes += ' active';
+                    } else if (Array.isArray(studentStatus)) {
+                        if (studentStatus.length === 1 && studentStatus[0] === key) {
+                            classes += ' active';
+                        } else if (studentStatus.length === 2) {
+                            if (studentStatus[0] === key) classes += ' status-half-left';
+                            if (studentStatus[1] === key) classes += ' status-half-right';
+                        }
+                    }
+                    return `<button class="${classes}" data-status="${key}" title="${statuses[key].text}">
+                                ${statusIcons[key]}
+                            </button>`;
+                }).join('')}</div>`;
             studentListContainer.appendChild(row);
         });
     }
@@ -77,14 +90,25 @@ function updateStats() {
     const dayData = attendanceData[currentDate] || {};
     const total = students.length;
     let presentCount = 0, lateCount = 0, absentCount = 0;
+
     students.forEach(student => {
         const status = dayData[student];
-        if (status === 'present' || status === 'late') presentCount++;
-        if (status === 'late') lateCount++;
-        if (['absent', 'sick', 'excused'].includes(status)) absentCount++;
+        if (!status) return;
+
+        const statusArray = Array.isArray(status) ? status : [status];
+        const increment = 1 / statusArray.length;
+
+        statusArray.forEach(s => {
+            if (s === 'present' || s === 'late') presentCount += increment;
+            if (s === 'late') lateCount += increment;
+            if (['absent', 'sick', 'excused'].includes(s)) absentCount += increment;
+        });
     });
-    statsContainer.innerHTML = `Присутствует: <strong>${presentCount}/${total}</strong> &nbsp;·&nbsp; Опоздало: <strong>${lateCount}</strong> &nbsp;·&nbsp; Отсутствует: <strong>${absentCount}</strong>`;
+    
+    // Используем toFixed(1) чтобы показать .5 и Number() чтобы убрать лишний .0
+    statsContainer.innerHTML = `Присутствует: <strong>${Number(presentCount.toFixed(1))}/${total}</strong> &nbsp;·&nbsp; Опоздало: <strong>${Number(lateCount.toFixed(1))}</strong> &nbsp;·&nbsp; Отсутствует: <strong>${Number(absentCount.toFixed(1))}</strong>`;
 }
+
 
 function applyTheme(theme) {
     document.body.classList.toggle('theme-dark', theme === 'dark');
@@ -110,9 +134,15 @@ function prepareChartData(startDate, endDate) {
             const dayData = attendanceData[date];
             const dailyCounts = {};
             Object.keys(statuses).forEach(key => dailyCounts[key] = 0);
+            
             Object.values(dayData).forEach(status => {
-                if (dailyCounts[status] !== undefined) dailyCounts[status]++;
+                const statusArray = Array.isArray(status) ? status : [status];
+                const increment = 1 / statusArray.length;
+                statusArray.forEach(s => {
+                    if (dailyCounts[s] !== undefined) dailyCounts[s]+=increment;
+                });
             });
+
             Object.keys(statuses).forEach(key => statusCounts[key].push(dailyCounts[key]));
         }
     });
@@ -161,7 +191,7 @@ function renderChart() {
             plugins: { legend: { labels: { color: textColor }, position: 'bottom' } },
             scales: {
                 x: { ticks: { color: textColor }, grid: { color: gridColor } },
-                y: { beginAtZero: true, ticks: { color: textColor, precision: 0 }, grid: { color: gridColor } }
+                y: { beginAtZero: true, ticks: { color: textColor }, grid: { color: gridColor } }
             }
         }
     });
@@ -198,26 +228,35 @@ function updateStudentStats() {
     const endDate = statsEndDate.value;
     const attendanceData = appData.attendanceData || {};
     const stats = { present: 0, late: 0, absent: 0, sick: 0, excused: 0 };
+
     Object.keys(attendanceData).forEach(date => {
         if (date >= startDate && date <= endDate) {
-            const dayData = attendanceData[date];
-            const status = dayData[studentName];
-            if (status && stats.hasOwnProperty(status)) {
-                stats[status]++;
-            }
+            const status = attendanceData[date]?.[studentName];
+            if (!status) return;
+            
+            const statusArray = Array.isArray(status) ? status : [status];
+            const increment = 1 / statusArray.length;
+
+            statusArray.forEach(s => {
+                if (stats.hasOwnProperty(s)) {
+                    stats[s] += increment;
+                }
+            });
         }
     });
+
     const totalAbsences = stats.absent + stats.sick + stats.excused;
     studentStatsList.innerHTML = `
-        <li>Присутствовал: <strong>${stats.present} дн.</strong></li>
-        <li>Опоздал: <strong>${stats.late} раз</strong></li>
-        <li>Отсутствовал (всего): <strong>${totalAbsences} дн.</strong></li>
-        <li style="padding-left: 20px;">- По болезни: <strong>${stats.sick} дн.</strong></li>
-        <li style="padding-left: 20px;">- По ув. причине: <strong>${stats.excused} дн.</strong></li>
-        <li style="padding-left: 20px;">- Без причины: <strong>${stats.absent} дн.</strong></li>
+        <li>Присутствовал: <strong>${Number(stats.present.toFixed(1))} дн.</strong></li>
+        <li>Опоздал: <strong>${Number(stats.late.toFixed(1))} раз</strong></li>
+        <li>Отсутствовал (всего): <strong>${Number(totalAbsences.toFixed(1))} дн.</strong></li>
+        <li style="padding-left: 20px;">- По болезни: <strong>${Number(stats.sick.toFixed(1))} дн.</strong></li>
+        <li style="padding-left: 20px;">- По ув. причине: <strong>${Number(stats.excused.toFixed(1))} дн.</strong></li>
+        <li style="padding-left: 20px;">- Без причины: <strong>${Number(stats.absent.toFixed(1))} дн.</strong></li>
     `;
     renderStudentChart(stats);
 }
+
 
 function openStudentStatsModal(studentName) {
     studentStatsName.textContent = `Статистика: ${studentName}`;
@@ -248,17 +287,47 @@ function handleStatusClick(e) {
     if (!isAdmin) return;
     const button = e.target.closest('button[data-status]');
     if (!button) return;
+    
     const row = button.closest('.student-row');
     const name = row.dataset.name;
-    const status = button.dataset.status;
+    const clickedStatus = button.dataset.status;
+
     if (!appData.attendanceData) appData.attendanceData = {};
     if (!appData.attendanceData[currentDate]) appData.attendanceData[currentDate] = {};
-    const currentStatus = appData.attendanceData[currentDate][name];
-    if (currentStatus === status) {
-        delete appData.attendanceData[currentDate][name];
-    } else {
-        appData.attendanceData[currentDate][name] = status;
+
+    let currentStatus = appData.attendanceData[currentDate][name];
+    let statusArray = [];
+
+    // Преобразуем текущий статус в массив для удобства
+    if (Array.isArray(currentStatus)) {
+        statusArray = [...currentStatus];
+    } else if (typeof currentStatus === 'string') {
+        statusArray = [currentStatus];
     }
+
+    const statusIndex = statusArray.indexOf(clickedStatus);
+
+    if (statusIndex > -1) { // Клик по уже активному статусу
+        statusArray.splice(statusIndex, 1);
+    } else { // Клик по новому статусу
+        if (statusArray.length < 2) {
+            statusArray.push(clickedStatus);
+        } else { // Если уже 2 статуса, заменяем второй (правый)
+            statusArray[1] = clickedStatus;
+        }
+    }
+
+    // Сохраняем данные в правильном формате
+    if (statusArray.length === 0) {
+        delete appData.attendanceData[currentDate][name];
+    } else if (statusArray.length === 1) {
+        // Сохраняем как строку для экономии места и простоты
+        appData.attendanceData[currentDate][name] = statusArray[0];
+    } else {
+        // Сортируем, чтобы порядок был не важен. Например, [присутствовал, отсутствовал]
+        appData.attendanceData[currentDate][name] = statusArray.sort();
+    }
+
     saveData();
 }
 
@@ -319,8 +388,13 @@ function setupEventListeners() {
         const dayData = appData.attendanceData[currentDate] || {};
         let reportText = `Отчет о посещаемости за ${formatDate(currentDate)}:\n\n`;
         (appData.students || []).forEach(name => {
-            const statusKey = dayData[name];
-            const statusText = statusKey ? statuses[statusKey].text : 'Не отмечен';
+            const status = dayData[name];
+            let statusText = 'Не отмечен';
+            if (typeof status === 'string') {
+                statusText = statuses[status]?.text || 'Не отмечен';
+            } else if (Array.isArray(status)) {
+                statusText = status.map(s => statuses[s]?.text).join(' / ');
+            }
             reportText += `${name}: ${statusText}\n`;
         });
         navigator.clipboard.writeText(reportText).then(() => {
@@ -357,21 +431,17 @@ function setupEventListeners() {
     if(statsStartDate) statsStartDate.addEventListener('change', updateStudentStats);
     if(statsEndDate) statsEndDate.addEventListener('change', updateStudentStats);
     
-    // ===== ИЗМЕНЕННЫЙ БЛОК ДЛЯ СКАЧИВАНИЯ СТАТИСТИКИ СТУДЕНТА =====
     if(downloadStudentChartBtn) downloadStudentChartBtn.addEventListener('click', () => {
         const modalContent = studentStatsModal.querySelector('.modal-content');
         const closeBtn = studentStatsModal.querySelector('.close-btn');
         const actionButtons = studentStatsModal.querySelector('.data-buttons');
         const studentName = studentStatsModal.dataset.currentStudent.replace(' ', '_');
         
-        // Временно скрываем ненужные элементы
         closeBtn.style.visibility = 'hidden';
         actionButtons.style.visibility = 'hidden';
 
-        // Используем html2canvas для всего модального окна
         html2canvas(modalContent, { 
-            scale: 2, // Улучшаем качество
-            // Устанавливаем фон, чтобы избежать прозрачности
+            scale: 2,
             backgroundColor: window.getComputedStyle(modalContent).backgroundColor
         }).then(canvas => {
             const link = document.createElement('a');
@@ -379,7 +449,6 @@ function setupEventListeners() {
             link.download = `stats_${studentName}_${statsStartDate.value}_to_${statsEndDate.value}.png`;
             link.click();
         }).finally(() => {
-            // Возвращаем видимость элементов в любом случае
             closeBtn.style.visibility = 'visible';
             actionButtons.style.visibility = 'visible';
         });
