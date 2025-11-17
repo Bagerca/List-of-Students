@@ -224,7 +224,9 @@ button.status-excused.active { background-color: var(--grey); }
 }
 .guest-mode #settings-btn,
 .guest-mode #edit-schedule-btn,
-.schedule-editor-mode #settings-btn {
+.guest-mode #edit-duty-btn,
+.schedule-editor-mode #settings-btn,
+.schedule-editor-mode #edit-duty-btn {
     display: none;
 }
 
@@ -234,6 +236,67 @@ button.status-excused.active { background-color: var(--grey); }
 body.is-resizing {
     user-select: none;
     cursor: col-resize;
+}
+
+/* СТИЛИ ДЛЯ ДЕЖУРСТВ */
+.student-row.on-duty {
+    background-color: rgba(13, 110, 253, 0.07);
+}
+body.theme-dark .student-row.on-duty {
+    background-color: rgba(35, 116, 225, 0.2);
+}
+.student-row.on-duty .student-name {
+    font-weight: 700;
+    color: var(--accent-color);
+}
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+#edit-duty-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--secondary-text-color);
+    padding: 6px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+#edit-duty-btn:hover {
+    background-color: var(--border-color);
+    color: var(--accent-color);
+}
+#duty-student-list {
+    max-height: 50vh;
+    overflow-y: auto;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 10px;
+}
+.duty-student-item {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+.duty-student-item:hover {
+    background-color: var(--bg-color);
+}
+.duty-student-item input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    margin-right: 12px;
+    accent-color: var(--accent-color);
+}
+.duty-student-item label {
+    flex-grow: 1;
+    cursor: pointer;
 }
 
 @media (max-width: 991px) {
@@ -267,7 +330,7 @@ body.is-resizing {
     }
     .left-column, .right-column {
         padding: 0 12px;
-        min-width: 0; /* ИСПРАВЛЕНИЕ БАГА ПЕРЕТАСКИВАНИЯ */
+        min-width: 0;
     }
     .right-column {
         display: flex;
