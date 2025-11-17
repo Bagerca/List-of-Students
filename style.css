@@ -86,6 +86,33 @@ button.status-sick.active { background-color: var(--blue); border-color: var(--b
 button.status-excused.active { background-color: var(--grey); border-color: var(--grey); }
 .status-buttons button svg { width: 20px; height: 20px; }
 
+/* ===== НОВЫЕ СТИЛИ ДЛЯ ПОЛОВИНОК ===== */
+.status-buttons button.status-half-left,
+.status-buttons button.status-half-right {
+    color: white;
+    border-color: transparent;
+    background-size: 200% 100%;
+    transition: background-position 0.3s ease;
+}
+.status-buttons button.status-half-left { background-position: left; }
+.status-buttons button.status-half-right { background-position: right; }
+
+.status-buttons .status-present.status-half-left { background-image: linear-gradient(to right, var(--green) 50%, var(--card-bg-color) 50%); }
+.status-buttons .status-present.status-half-right { background-image: linear-gradient(to left, var(--green) 50%, var(--card-bg-color) 50%); }
+
+.status-buttons .status-late.status-half-left { background-image: linear-gradient(to right, var(--yellow) 50%, var(--card-bg-color) 50%); color: #333; }
+.status-buttons .status-late.status-half-right { background-image: linear-gradient(to left, var(--yellow) 50%, var(--card-bg-color) 50%); color: #333; }
+
+.status-buttons .status-absent.status-half-left { background-image: linear-gradient(to right, var(--red) 50%, var(--card-bg-color) 50%); }
+.status-buttons .status-absent.status-half-right { background-image: linear-gradient(to left, var(--red) 50%, var(--card-bg-color) 50%); }
+
+.status-buttons .status-sick.status-half-left { background-image: linear-gradient(to right, var(--blue) 50%, var(--card-bg-color) 50%); }
+.status-buttons .status-sick.status-half-right { background-image: linear-gradient(to left, var(--blue) 50%, var(--card-bg-color) 50%); }
+
+.status-buttons .status-excused.status-half-left { background-image: linear-gradient(to right, var(--grey) 50%, var(--card-bg-color) 50%); }
+.status-buttons .status-excused.status-half-right { background-image: linear-gradient(to left, var(--grey) 50%, var(--card-bg-color) 50%); }
+
+
 .chart-section { margin-top: 24px; padding: 24px; background-color: var(--card-bg-color); border-radius: 12px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); }
 .chart-section h2 { margin-bottom: 16px; font-size: 1.5rem; }
 .chart-controls { display: flex; gap: 20px; margin-bottom: 24px; flex-wrap: wrap; }
@@ -120,9 +147,6 @@ button.status-excused.active { background-color: var(--grey); border-color: var(
 
 .guest-mode #settings-btn { display: none; }
 .guest-mode .status-buttons button { pointer-events: none; }
-
-/* ===== ИСПРАВЛЕННАЯ СТРОКА ЗДЕСЬ ===== */
-/* Теперь блокируются элементы ТОЛЬКО в окне настроек #settings-modal */
 .guest-mode #settings-modal button, .guest-mode #settings-modal textarea {
     pointer-events: none;
     opacity: 0.7;
