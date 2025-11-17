@@ -1,12 +1,11 @@
 // ui.js
 
+let getAppData, saveData;
+
 let themeToggleBtn, settingsBtn, settingsModal, closeModalBtn,
     studentListEditor, lineNumbers, saveStudentsBtn,
-    exportDataBtn, importDataBtn, importFileInput,
-    chartCanvas, chartStartDate, chartEndDate;
-
-let attendanceChart = null;
-
+    exportDataBtn, importDataBtn, importFileInput;
+    
 const sunIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>`;
 const moonIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>`;
 
@@ -28,12 +27,10 @@ function updateLineNumbers() {
     }
 }
 
-// Chart functions remain here
-function renderChart(appData) {
-    // ... chart rendering logic ...
-}
+export function initUI(_getAppData, _saveData, isAdmin) {
+    getAppData = _getAppData;
+    saveData = _saveData;
 
-export function initUI(appData, saveData, isAdmin) {
     themeToggleBtn = document.getElementById('theme-toggle-btn');
     settingsBtn = document.getElementById('settings-btn');
     settingsModal = document.getElementById('settings-modal');
@@ -54,34 +51,24 @@ export function initUI(appData, saveData, isAdmin) {
         importDataBtn = document.getElementById('import-data-btn');
         importFileInput = document.getElementById('import-file-input');
         
-        // ===== THIS IS THE CORRECTED BLOCK =====
         settingsBtn.onclick = () => {
-            // Populate student list
+            const appData = getAppData();
             studentListEditor.value = (appData.students || []).join('\n');
             updateLineNumbers();
-            
-            // This part was missing and is now restored
-            const scheduleEditor = document.getElementById('schedule-editor');
-            if (scheduleEditor) {
-                const schedule = appData.schedule || [];
-                 scheduleEditor.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
-                    checkbox.checked = schedule.includes(Number(checkbox.dataset.day));
-                });
-            }
-            
             settingsModal.classList.add('show');
         };
-        // ===== END OF CORRECTION =====
 
         studentListEditor.addEventListener('input', updateLineNumbers);
 
         saveStudentsBtn.onclick = () => {
+            const appData = getAppData();
             appData.students = studentListEditor.value.split('\n').map(s => s.trim()).filter(Boolean);
             saveData();
-            alert('Student list saved!');
+            alert('Список студентов сохранен!');
         };
         
         exportDataBtn.onclick = () => {
+            const appData = getAppData();
             const dataStr = JSON.stringify(appData, null, 2);
             const blob = new Blob([dataStr], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
@@ -101,13 +88,14 @@ export function initUI(appData, saveData, isAdmin) {
                 try {
                     const importedData = JSON.parse(e.target.result);
                     if (importedData.students && importedData.attendanceData && importedData.scheduleData) {
+                        const appData = getAppData();
                         appData.students = importedData.students;
                         appData.attendanceData = importedData.attendanceData;
                         appData.scheduleData = importedData.scheduleData;
                         saveData();
                         settingsModal.classList.remove('show');
-                    } else { alert('Invalid file format.'); }
-                } catch (error) { alert('Error reading file.'); }
+                    } else { alert('Ошибка: неверный формат файла.'); }
+                } catch (error) { alert('Ошибка при чтении файла.'); }
             };
             reader.readAsText(file);
             importFileInput.value = '';
