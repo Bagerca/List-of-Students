@@ -68,12 +68,8 @@ function render() {
                     if (typeof studentStatus === 'string' && studentStatus === key) {
                         classes += ' active';
                     } else if (Array.isArray(studentStatus)) {
-                        if (studentStatus.length === 1 && studentStatus[0] === key) {
-                            classes += ' active';
-                        } else if (studentStatus.length === 2) {
-                            if (studentStatus[0] === key) classes += ' status-half-left';
-                            if (studentStatus[1] === key) classes += ' status-half-right';
-                        }
+                        if (studentStatus[0] === key) classes += ' active-half status-half-left';
+                        if (studentStatus[1] === key) classes += ' active-half status-half-right';
                     }
                     return `<button class="${classes}" data-status="${key}" title="${statuses[key].text}">
                                 ${statusIcons[key]}
@@ -107,7 +103,6 @@ function updateStats() {
     
     statsContainer.innerHTML = `Присутствует: <strong>${Number(presentCount.toFixed(1))}/${total}</strong> &nbsp;·&nbsp; Опоздало: <strong>${Number(lateCount.toFixed(1))}</strong> &nbsp;·&nbsp; Отсутствует: <strong>${Number(absentCount.toFixed(1))}</strong>`;
 }
-
 
 function applyTheme(theme) {
     document.body.classList.toggle('theme-dark', theme === 'dark');
@@ -256,7 +251,6 @@ function updateStudentStats() {
     renderStudentChart(stats);
 }
 
-
 function openStudentStatsModal(studentName) {
     studentStatsName.textContent = `Статистика: ${studentName}`;
     studentStatsModal.dataset.currentStudent = studentName;
@@ -295,32 +289,24 @@ function handleStatusClick(e) {
     if (!appData.attendanceData[currentDate]) appData.attendanceData[currentDate] = {};
 
     let currentStatus = appData.attendanceData[currentDate][name];
-    let statusArray = [];
-
-    if (Array.isArray(currentStatus)) {
-        statusArray = [...currentStatus];
-    } else if (typeof currentStatus === 'string') {
-        statusArray = [currentStatus];
-    }
-
-    const statusIndex = statusArray.indexOf(clickedStatus);
-
-    if (statusIndex > -1) {
-        statusArray.splice(statusIndex, 1);
-    } else {
-        if (statusArray.length < 2) {
-            statusArray.push(clickedStatus);
+    
+    if (typeof currentStatus === 'string') {
+        if (currentStatus === clickedStatus) {
+            delete appData.attendanceData[currentDate][name];
         } else {
-            statusArray[1] = clickedStatus;
+            appData.attendanceData[currentDate][name] = [currentStatus, clickedStatus];
         }
-    }
-
-    if (statusArray.length === 0) {
-        delete appData.attendanceData[currentDate][name];
-    } else if (statusArray.length === 1) {
-        appData.attendanceData[currentDate][name] = statusArray[0];
+    } else if (Array.isArray(currentStatus)) {
+        const statusIndex = currentStatus.indexOf(clickedStatus);
+        if (statusIndex > -1) {
+            currentStatus.splice(statusIndex, 1);
+            appData.attendanceData[currentDate][name] = currentStatus[0];
+        } else {
+            currentStatus[1] = clickedStatus;
+            appData.attendanceData[currentDate][name] = currentStatus;
+        }
     } else {
-        appData.attendanceData[currentDate][name] = statusArray;
+        appData.attendanceData[currentDate][name] = clickedStatus;
     }
 
     saveData();
