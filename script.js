@@ -37,16 +37,15 @@ const statusIcons = {
 const sunIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>`;
 const moonIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>`;
 
-// Объявляем переменные здесь, но находим элементы после загрузки DOM
 let datePicker, prevDayBtn, nextDayBtn, sheetDateDisplay, studentListContainer, 
     downloadBtn, copyBtn, statsContainer, settingsBtn, themeToggleBtn, 
     chartCanvas, chartStartDate, chartEndDate, settingsModal, closeModalBtn, 
     saveStudentsBtn, studentListEditor, lineNumbers, exportDataBtn, 
     importDataBtn, importFileInput, studentStatsModal, studentStatsName, 
     studentStatsList, studentChartCanvas, statsStartDate, statsEndDate, 
-    downloadStudentChartBtn, studentStatsModalCloseBtn;
+    downloadStudentChartBtn, studentStatsModalCloseBtn, downloadMainChartBtn;
 
-// --- 4. ФУНКЦИИ ПРИЛОЖЕНИЯ (без изменений) ---
+// --- 4. ФУНКЦИИ ПРИЛОЖЕНИЯ ---
 function saveData() { if (isAdmin) set(ref(database, 'journalData'), appData); }
 
 function render() {
@@ -279,6 +278,7 @@ function cacheDOMElements() {
     chartCanvas = document.getElementById('attendance-chart');
     chartStartDate = document.getElementById('chart-start-date');
     chartEndDate = document.getElementById('chart-end-date');
+    downloadMainChartBtn = document.getElementById('download-main-chart-btn');
     studentStatsModal = document.getElementById('student-stats-modal');
     studentStatsName = document.getElementById('student-stats-name');
     studentStatsList = document.getElementById('student-stats-list');
@@ -288,7 +288,6 @@ function cacheDOMElements() {
     downloadStudentChartBtn = document.getElementById('download-student-chart-btn');
     studentStatsModalCloseBtn = studentStatsModal.querySelector('.close-btn');
 
-    // Находим элементы, которые есть только у админа
     if (isAdmin) {
         settingsModal = document.getElementById('settings-modal');
         closeModalBtn = settingsModal.querySelector('.close-btn');
@@ -301,9 +300,7 @@ function cacheDOMElements() {
     }
 }
 
-// ===== ГЛАВНОЕ ИЗМЕНЕНИЕ ЗДЕСЬ =====
 function setupEventListeners() {
-    // --- ОБЩИЕ ОБРАБОТЧИКИ (для всех) ---
     if (datePicker) datePicker.addEventListener('change', e => { currentDate = e.target.value; render(); });
     if (prevDayBtn) prevDayBtn.addEventListener('click', () => changeDate(-1));
     if (nextDayBtn) nextDayBtn.addEventListener('click', () => changeDate(1));
@@ -333,8 +330,16 @@ function setupEventListeners() {
             setTimeout(() => { btnText.textContent = originalText; }, 2000);
         });
     });
+    
+    if (downloadMainChartBtn) downloadMainChartBtn.addEventListener('click', () => {
+        if (attendanceChart) {
+            const link = document.createElement('a');
+            link.href = attendanceChart.toBase64Image('image/png', 1);
+            link.download = `attendance_chart_${chartStartDate.value}_to_${chartEndDate.value}.png`;
+            link.click();
+        }
+    });
 
-    // Обработчик кликов в списке студентов
     if (studentListContainer) studentListContainer.addEventListener('click', e => {
         const studentNameDiv = e.target.closest('.student-name.clickable');
         if (studentNameDiv) {
@@ -347,7 +352,6 @@ function setupEventListeners() {
         }
     });
 
-    // Обработчики модального окна статистики
     if(studentStatsModalCloseBtn) studentStatsModalCloseBtn.onclick = () => studentStatsModal.classList.remove('show');
     if(studentStatsModal) studentStatsModal.onclick = e => { if (e.target === studentStatsModal) studentStatsModal.classList.remove('show'); };
     if(statsStartDate) statsStartDate.addEventListener('change', updateStudentStats);
@@ -360,7 +364,6 @@ function setupEventListeners() {
         link.click();
     });
 
-    // --- ОБРАБОТЧИКИ ТОЛЬКО ДЛЯ АДМИНА ---
     if (isAdmin) {
         if(settingsBtn) settingsBtn.onclick = () => {
             studentListEditor.value = (appData.students || []).join('\n');
@@ -445,5 +448,4 @@ function init() {
     setupEventListeners();
 }
 
-// Запускаем приложение после полной загрузки страницы
 document.addEventListener('DOMContentLoaded', init);
