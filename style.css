@@ -89,10 +89,13 @@ body.theme-dark .student-row:hover { background-color: rgba(255,255,255,0.05); }
 }
 .status-buttons button:hover { border-color: var(--accent-color); color: var(--accent-color); }
 
-/* SVG иконка НЕ НУЖДАЕТСЯ в position:relative и z-index */
+/* SVG иконка должна быть поверх цветного слоя */
 .status-buttons button svg {
     width: 20px;
     height: 20px;
+    /* ===== ИСПРАВЛЕНИЕ ЗДЕСЬ ===== */
+    position: relative;
+    z-index: 1;
 }
 
 .status-buttons button.active { color: white; border-color: transparent; }
