@@ -38,40 +38,44 @@ export function renderSchedule() {
         const card = document.createElement('div');
         card.className = 'day-card';
         card.dataset.dayIndex = dayIndex;
+        
+        const isDayOff = !dayData || !dayData.lessons || dayData.lessons.length === 0;
+        if (isDayOff) {
+            card.classList.add('day-off');
+        }
 
-        let contentHTML = `
+        const lessonsText = (dayData && dayData.lessons) ? dayData.lessons.join('\n') : '';
+        const homeworkText = (dayData && dayData.homework) ? dayData.homework : '';
+
+        card.innerHTML = `
             <div class="day-card-header">
                 <h3>${weekDays[dayIndex]}</h3>
                 <span class="date">${dayDate.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })}</span>
-            </div>`;
-        
-        if (dayData && dayData.lessons) {
-            const lessonsList = Array.isArray(dayData.lessons) ? dayData.lessons.join('\n') : dayData.lessons;
-            card.innerHTML += `
-                <ul class="lessons-list">
-                    ${(dayData.lessons || []).map(lesson => `<li>${lesson}</li>`).join('')}
-                </ul>
-                <textarea class="schedule-editor lessons-editor">${lessonsList}</textarea>
-                <div class="homework">
-                    <h4>Домашнее задание</h4>
-                    <p class="homework-content">${dayData.homework || 'Нет'}</p>
-                    <textarea class="schedule-editor homework-editor">${dayData.homework || ''}</textarea>
-                </div>
-            `;
-        } else {
-            card.classList.add('day-off');
-            card.innerHTML += `<div class="day-off-message"><span class="emoji">🎉</span>ВЫХОДНОЙ</div>`;
-        }
+            </div>
+            
+            <ul class="lessons-list">
+                ${(dayData && dayData.lessons ? dayData.lessons : []).map(lesson => `<li>${lesson}</li>`).join('')}
+            </ul>
+            <textarea class="schedule-editor lessons-editor" placeholder="Урок 1\nУрок 2...">${lessonsText}</textarea>
+            
+            ${isDayOff ? '<div class="day-off-message"><span class="emoji">🎉</span>ВЫХОДНОЙ</div>' : ''}
 
-        if (!document.body.classList.contains('guest-mode')) {
-            card.innerHTML += `
-                <button class="edit-schedule-btn" title="Редактировать">✏️</button>
+            <div class="homework">
+                <h4>Домашнее задание</h4>
+                <p class="homework-content">${homeworkText || 'Нет'}</p>
+                <textarea class="schedule-editor homework-editor" placeholder="Текст домашнего задания...">${homeworkText}</textarea>
+            </div>
+            
+            ${document.body.classList.contains('guest-mode') ? '' : `
+                <button class="edit-schedule-btn" title="Редактировать">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                </button>
                 <div class="edit-controls">
                     <button class="primary-button save-btn">✓ Сохранить</button>
                     <button class="secondary-button cancel-btn">✗ Отмена</button>
                 </div>
-            `;
-        }
+            `}
+        `;
         
         scheduleContainer.appendChild(card);
     }
@@ -103,15 +107,19 @@ export function initSchedule(_getAppData, _saveData) {
 
         const dayIndex = card.dataset.dayIndex;
 
-        if (e.target.classList.contains('edit-schedule-btn')) {
+        if (e.target.closest('.edit-schedule-btn')) {
             card.classList.add('is-editing');
         }
 
-        if (e.target.classList.contains('cancel-btn')) {
+        if (e.target.closest('.cancel-btn')) {
+            // Сбрасываем значения на те, что были до редактирования
+            const originalData = appData.scheduleData[dayIndex] || { lessons: [], homework: '' };
+            card.querySelector('.lessons-editor').value = (originalData.lessons || []).join('\n');
+            card.querySelector('.homework-editor').value = originalData.homework || '';
             card.classList.remove('is-editing');
         }
 
-        if (e.target.classList.contains('save-btn')) {
+        if (e.target.closest('.save-btn')) {
             const lessonsText = card.querySelector('.lessons-editor').value;
             const homeworkText = card.querySelector('.homework-editor').value;
 
@@ -127,6 +135,7 @@ export function initSchedule(_getAppData, _saveData) {
             }
             
             saveData();
+            // Выход из режима редактирования произойдет автоматически при следующем рендере
         }
     });
 
