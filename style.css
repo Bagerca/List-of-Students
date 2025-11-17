@@ -267,6 +267,7 @@ body.is-resizing {
     }
     .left-column, .right-column {
         padding: 0 12px;
+        min-width: 0; /* ИСПРАВЛЕНИЕ БАГА ПЕРЕТАСКИВАНИЯ */
     }
     .right-column {
         display: flex;
