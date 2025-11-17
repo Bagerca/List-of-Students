@@ -19,7 +19,7 @@ const database = getDatabase(app);
 const urlParams = new URLSearchParams(window.location.search);
 const isAdmin = urlParams.get('admin') === 'true';
 const isScheduleEditor = urlParams.get('schedule_editor') === 'true';
-let appData = { students: [], attendanceData: {}, schedule: {} };
+let appData = { students: [], attendanceData: {}, schedule: {}, dutyData: {} };
 let currentDate = new Date().toISOString().split('T')[0];
 let attendanceChart = null;
 let studentChart = null;
@@ -55,32 +55,41 @@ function saveData() {
 }
 
 function render() {
-    const { students = [], attendanceData = {} } = appData;
+    const { students = [], attendanceData = {}, dutyData = {} } = appData;
     sheetDateDisplay.textContent = formatDate(currentDate);
     studentListContainer.innerHTML = '';
     if (students.length === 0) {
         studentListContainer.innerHTML = `<p style="text-align:center; color: var(--secondary-text-color); padding: 20px;">Список учеников пуст. Добавьте их в настройках.</p>`;
     } else {
+        const dutiesForDay = dutyData[currentDate] || [];
         students.forEach(name => {
             const row = document.createElement('div');
-            row.className = 'student-row';
+            const isOnDuty = dutiesForDay.includes(name);
+            row.className = `student-row ${isOnDuty ? 'on-duty' : ''}`;
             row.dataset.name = name;
             const currentDayData = attendanceData[currentDate] || {};
             const studentStatus = currentDayData[name];
 
-            row.innerHTML = `<div class="student-name clickable">${name}</div><div class="status-buttons">
-                ${Object.keys(statuses).map(key => {
-                    let classes = `status-${key}`;
-                    if (typeof studentStatus === 'string' && studentStatus === key) {
-                        classes += ' active';
-                    } else if (Array.isArray(studentStatus)) {
-                        if (studentStatus[0] === key) classes += ' active-half status-half-left';
-                        if (studentStatus[1] === key) classes += ' active-half status-half-right';
-                    }
-                    return `<button class="${classes}" data-status="${key}" title="${statuses[key].text}">
-                                ${statusIcons[key]}
-                            </button>`;
-                }).join('')}</div>`;
+            row.innerHTML = `
+                <div class="duty-marker">
+                    <input type="checkbox" class="duty-checkbox" ${isOnDuty ? 'checked' : ''} title="Отметить дежурным">
+                    <span class="checkmark"></span>
+                </div>
+                <div class="student-name clickable">${name}</div>
+                <div class="status-buttons">
+                    ${Object.keys(statuses).map(key => {
+                        let classes = `status-${key}`;
+                        if (typeof studentStatus === 'string' && studentStatus === key) {
+                            classes += ' active';
+                        } else if (Array.isArray(studentStatus)) {
+                            if (studentStatus[0] === key) classes += ' active-half status-half-left';
+                            if (studentStatus[1] === key) classes += ' active-half status-half-right';
+                        }
+                        return `<button class="${classes}" data-status="${key}" title="${statuses[key].text}">
+                                    ${statusIcons[key]}
+                                </button>`;
+                    }).join('')}
+                </div>`;
             studentListContainer.appendChild(row);
         });
     }
@@ -318,6 +327,33 @@ function handleStatusClick(e) {
     saveData();
 }
 
+function handleDutyChange(e) {
+    if (!isAdmin) return;
+    const checkbox = e.target;
+    const row = checkbox.closest('.student-row');
+    const name = row.dataset.name;
+
+    if (!appData.dutyData) appData.dutyData = {};
+    if (!appData.dutyData[currentDate]) appData.dutyData[currentDate] = [];
+
+    const dutyList = appData.dutyData[currentDate];
+    const studentIndex = dutyList.indexOf(name);
+
+    if (checkbox.checked) {
+        if (studentIndex === -1) {
+            dutyList.push(name);
+        }
+    } else {
+        if (studentIndex > -1) {
+            dutyList.splice(studentIndex, 1);
+        }
+    }
+    
+    row.classList.toggle('on-duty', checkbox.checked);
+    saveData();
+}
+
+
 function renderSchedule() {
     if (!scheduleContainer) return;
     const schedule = appData.schedule || {};
@@ -513,12 +549,18 @@ function setupEventListeners() {
     });
 
     if (studentListContainer) studentListContainer.addEventListener('click', e => {
+        if (e.target.classList.contains('duty-checkbox')) {
+            handleDutyChange(e);
+            return;
+        }
+
         const studentNameDiv = e.target.closest('.student-name.clickable');
         if (studentNameDiv) {
             openStudentStatsModal(studentNameDiv.closest('.student-row').dataset.name);
             return;
         }
-        if (isAdmin) {
+
+        if (isAdmin && e.target.closest('.status-buttons')) {
             handleStatusClick(e);
         }
     });
@@ -684,7 +726,8 @@ function init() {
         appData = {
             students: data.students || [],
             attendanceData: data.attendanceData || {},
-            schedule: data.schedule || {}
+            schedule: data.schedule || {},
+            dutyData: data.dutyData || {}
         };
         if (!snapshot.val() && isAdmin) {
             saveData();
