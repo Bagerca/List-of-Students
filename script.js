@@ -18,7 +18,7 @@ const database = getDatabase(app);
 // --- 2. ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ И КОНСТАНТЫ ---
 const urlParams = new URLSearchParams(window.location.search);
 const isAdmin = urlParams.get('admin') === 'true';
-let appData = { students: [], attendanceData: {} };
+let appData = { students: [], attendanceData: {}, schedule: {} }; // <-- Добавлен schedule
 let currentDate = new Date().toISOString().split('T')[0];
 let attendanceChart = null;
 let studentChart = null;
@@ -36,6 +36,7 @@ const statusIcons = {
 };
 const sunIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>`;
 const moonIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>`;
+const daysOfWeek = { monday: 'Понедельник', tuesday: 'Вторник', wednesday: 'Среда', thursday: 'Четверг', friday: 'Пятница', saturday: 'Суббота' }; // <-- Новая константа
 
 let datePicker, prevDayBtn, nextDayBtn, sheetDateDisplay, studentListContainer, 
     downloadBtn, copyBtn, statsContainer, settingsBtn, themeToggleBtn, 
@@ -43,7 +44,9 @@ let datePicker, prevDayBtn, nextDayBtn, sheetDateDisplay, studentListContainer,
     saveStudentsBtn, studentListEditor, lineNumbers, exportDataBtn, 
     importDataBtn, importFileInput, studentStatsModal, studentStatsName, 
     studentStatsList, studentChartCanvas, statsStartDate, statsEndDate, 
-    downloadStudentChartBtn, studentStatsModalCloseBtn, downloadMainChartBtn;
+    downloadStudentChartBtn, studentStatsModalCloseBtn, downloadMainChartBtn,
+    scheduleContainer, editScheduleBtn, scheduleModal, scheduleModalCloseBtn, // <-- Новые переменные
+    scheduleEditorContainer, saveScheduleBtn; // <-- Новые переменные
 
 // --- 4. ФУНКЦИИ ПРИЛОЖЕНИЯ ---
 function saveData() { if (isAdmin) set(ref(database, 'journalData'), appData); }
@@ -312,6 +315,103 @@ function handleStatusClick(e) {
     saveData();
 }
 
+// --- НОВЫЕ ФУНКЦИИ ДЛЯ РАСПИСАНИЯ ---
+function renderSchedule() {
+    if (!scheduleContainer) return;
+    const schedule = appData.schedule || {};
+    scheduleContainer.innerHTML = '';
+
+    Object.keys(daysOfWeek).forEach(dayKey => {
+        const dayLessons = schedule[dayKey] || [];
+        const dayColumn = document.createElement('div');
+        dayColumn.className = 'day-column';
+
+        let lessonsHTML = '';
+        if (dayLessons.length > 0) {
+            lessonsHTML = dayLessons
+                .sort((a, b) => a.time.localeCompare(b.time))
+                .map(lesson => `
+                    <div class="lesson-card">
+                        <div class="time">${lesson.time}</div>
+                        <div class="subject">${lesson.subject}</div>
+                        <div class="homework">${lesson.homework}</div>
+                    </div>
+                `).join('');
+        } else {
+            lessonsHTML = '<p class="no-lessons">Уроков нет</p>';
+        }
+
+        dayColumn.innerHTML = `<h3>${daysOfWeek[dayKey]}</h3> ${lessonsHTML}`;
+        scheduleContainer.appendChild(dayColumn);
+    });
+}
+
+function renderScheduleEditor() {
+    const schedule = appData.schedule || {};
+    scheduleEditorContainer.innerHTML = '';
+
+    Object.keys(daysOfWeek).forEach(dayKey => {
+        const dayLessons = schedule[dayKey] || [];
+        const section = document.createElement('div');
+        section.className = 'editor-day-section';
+        section.dataset.day = dayKey;
+
+        let lessonsHTML = dayLessons.map(lesson => createLessonEditorRow(lesson)).join('');
+
+        section.innerHTML = `
+            <h4>${daysOfWeek[dayKey]}</h4>
+            <div class="lessons-list">${lessonsHTML}</div>
+            <button class="add-lesson-btn secondary-button" data-day="${dayKey}">+ Добавить урок</button>
+        `;
+        scheduleEditorContainer.appendChild(section);
+    });
+}
+
+function createLessonEditorRow(lesson = {}) {
+    const id = lesson.id || Date.now() + Math.random();
+    const time = lesson.time || '';
+    const subject = lesson.subject || '';
+    const homework = lesson.homework || '';
+    return `
+        <div class="lesson-editor-row" data-id="${id}">
+            <input type="time" value="${time}" placeholder="Время">
+            <input type="text" value="${subject}" placeholder="Предмет">
+            <textarea placeholder="Домашнее задание">${homework}</textarea>
+            <button class="delete-lesson-btn" title="Удалить урок">&times;</button>
+        </div>
+    `;
+}
+
+function saveScheduleChanges() {
+    const newSchedule = {};
+    const daySections = scheduleEditorContainer.querySelectorAll('.editor-day-section');
+    
+    daySections.forEach(section => {
+        const dayKey = section.dataset.day;
+        newSchedule[dayKey] = [];
+        const lessonRows = section.querySelectorAll('.lesson-editor-row');
+        lessonRows.forEach(row => {
+            const time = row.querySelector('input[type="time"]').value;
+            const subject = row.querySelector('input[type="text"]').value;
+            const homework = row.querySelector('textarea').value;
+            if (subject.trim()) {
+                newSchedule[dayKey].push({
+                    id: row.dataset.id,
+                    time: time,
+                    subject: subject.trim(),
+                    homework: homework.trim()
+                });
+            }
+        });
+    });
+
+    appData.schedule = newSchedule;
+    saveData();
+    scheduleModal.classList.remove('show');
+}
+// --- КОНЕЦ НОВЫХ ФУНКЦИЙ ---
+
+
 // --- 5. ФУНКЦИИ ИНИЦИАЛИЗАЦИИ ---
 
 function cacheDOMElements() {
@@ -338,6 +438,8 @@ function cacheDOMElements() {
     downloadStudentChartBtn = document.getElementById('download-student-chart-btn');
     studentStatsModalCloseBtn = studentStatsModal.querySelector('.close-btn');
 
+    scheduleContainer = document.getElementById('schedule-container'); // <-- Кешируем новый элемент
+
     if (isAdmin) {
         settingsModal = document.getElementById('settings-modal');
         closeModalBtn = settingsModal.querySelector('.close-btn');
@@ -347,6 +449,12 @@ function cacheDOMElements() {
         exportDataBtn = document.getElementById('export-data-btn');
         importDataBtn = document.getElementById('import-data-btn');
         importFileInput = document.getElementById('import-file-input');
+        // --- Кешируем элементы расписания ---
+        editScheduleBtn = document.getElementById('edit-schedule-btn');
+        scheduleModal = document.getElementById('schedule-modal');
+        scheduleModalCloseBtn = scheduleModal.querySelector('.close-btn');
+        scheduleEditorContainer = document.getElementById('schedule-editor-container');
+        saveScheduleBtn = document.getElementById('save-schedule-btn');
     }
 }
 
@@ -476,6 +584,26 @@ function setupEventListeners() {
             reader.readAsText(file);
             importFileInput.value = '';
         };
+
+        // --- Новые обработчики для расписания ---
+        editScheduleBtn.onclick = () => {
+            renderScheduleEditor();
+            scheduleModal.classList.add('show');
+        };
+        scheduleModalCloseBtn.onclick = () => scheduleModal.classList.remove('show');
+        scheduleModal.onclick = (e) => { if (e.target === scheduleModal) scheduleModal.classList.remove('show'); };
+        saveScheduleBtn.onclick = saveScheduleChanges;
+
+        scheduleEditorContainer.addEventListener('click', e => {
+            if (e.target.classList.contains('add-lesson-btn')) {
+                const day = e.target.dataset.day;
+                const list = scheduleEditorContainer.querySelector(`.editor-day-section[data-day="${day}"] .lessons-list`);
+                list.insertAdjacentHTML('beforeend', createLessonEditorRow());
+            }
+            if (e.target.classList.contains('delete-lesson-btn')) {
+                e.target.closest('.lesson-editor-row').remove();
+            }
+        });
     }
 }
 
@@ -499,7 +627,8 @@ function init() {
         const data = snapshot.val();
         appData = {
             students: (data && data.students) || [],
-            attendanceData: (data && data.attendanceData) || {}
+            attendanceData: (data && data.attendanceData) || {},
+            schedule: (data && data.schedule) || {} // <-- Получаем расписание из Firebase
         };
         if (!data && isAdmin) {
             saveData();
@@ -514,6 +643,7 @@ function init() {
         }
         render();
         renderChart();
+        renderSchedule(); // <-- Рендерим расписание при загрузке и обновлении
     });
     datePicker.value = currentDate;
     setupEventListeners();
