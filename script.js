@@ -68,6 +68,7 @@ function render() {
                     if (typeof studentStatus === 'string' && studentStatus === key) {
                         classes += ' active';
                     } else if (Array.isArray(studentStatus)) {
+                        // Если в массиве один статус, он тоже отображается как полный
                         if (studentStatus.length === 1 && studentStatus[0] === key) {
                             classes += ' active';
                         } else if (studentStatus.length === 2) {
@@ -105,7 +106,6 @@ function updateStats() {
         });
     });
     
-    // Используем toFixed(1) чтобы показать .5 и Number() чтобы убрать лишний .0
     statsContainer.innerHTML = `Присутствует: <strong>${Number(presentCount.toFixed(1))}/${total}</strong> &nbsp;·&nbsp; Опоздало: <strong>${Number(lateCount.toFixed(1))}</strong> &nbsp;·&nbsp; Отсутствует: <strong>${Number(absentCount.toFixed(1))}</strong>`;
 }
 
@@ -298,7 +298,6 @@ function handleStatusClick(e) {
     let currentStatus = appData.attendanceData[currentDate][name];
     let statusArray = [];
 
-    // Преобразуем текущий статус в массив для удобства
     if (Array.isArray(currentStatus)) {
         statusArray = [...currentStatus];
     } else if (typeof currentStatus === 'string') {
@@ -317,15 +316,13 @@ function handleStatusClick(e) {
         }
     }
 
-    // Сохраняем данные в правильном формате
     if (statusArray.length === 0) {
         delete appData.attendanceData[currentDate][name];
     } else if (statusArray.length === 1) {
-        // Сохраняем как строку для экономии места и простоты
         appData.attendanceData[currentDate][name] = statusArray[0];
     } else {
-        // Сортируем, чтобы порядок был не важен. Например, [присутствовал, отсутствовал]
-        appData.attendanceData[currentDate][name] = statusArray.sort();
+        // НЕ СОРТИРУЕМ! Порядок важен для отображения лево/право
+        appData.attendanceData[currentDate][name] = statusArray;
     }
 
     saveData();
