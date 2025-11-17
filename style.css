@@ -77,7 +77,6 @@ body.theme-dark .student-row:hover { background-color: rgba(255,255,255,0.05); }
 .student-name { flex-grow: 1; font-size: 1rem; font-weight: 500; }
 .status-buttons { display: flex; gap: 8px; }
 
-/* ===== ИСПРАВЛЕННАЯ СЕКЦИЯ CSS ===== */
 .status-buttons button { 
     width: 36px; height: 36px; border-radius: 8px; 
     border: 1px solid var(--border-color); 
@@ -85,7 +84,7 @@ body.theme-dark .student-row:hover { background-color: rgba(255,255,255,0.05); }
     cursor: pointer; display: flex; align-items: center; justify-content: center; 
     color: var(--secondary-text-color); 
     transition: all 0.2s ease;
-    background-repeat: no-repeat; /* Обязательно */
+    background-repeat: no-repeat;
 }
 .status-buttons button:hover { border-color: var(--accent-color); color: var(--accent-color); }
 
@@ -105,8 +104,6 @@ button.status-excused.active, .status-excused.active-half { background-color: va
 
 .status-buttons button.status-half-left { background-position: left center; }
 .status-buttons button.status-half-right { background-position: right center; }
-/* ===== КОНЕЦ ИСПРАВЛЕННОЙ СЕКЦИИ ===== */
-
 
 .chart-section { margin-top: 24px; padding: 24px; background-color: var(--card-bg-color); border-radius: 12px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); }
 .chart-section h2 { margin-bottom: 16px; font-size: 1.5rem; }
