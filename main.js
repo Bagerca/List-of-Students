@@ -3,7 +3,7 @@ import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebase
 
 import { initJournal, renderJournal, showDayOffMessageInJournal } from './journal.js';
 import { initSchedule, renderSchedule } from './schedule.js';
-import { initUI, renderChart, setChartDateRange } from './ui.js';
+import { initUI, renderChart, setChartDateRange, openStudentStatsModal } from './ui.js';
 
 const firebaseConfig = {
     apiKey: "AIzaSyAdEYhK5jZn1DjEpQlwFr1WBS-k6iJZdyQ",
@@ -37,6 +37,7 @@ function saveData() {
 function isSchoolDay(dateString) {
     const day = new Date(dateString + 'T00:00:00').getDay();
     const scheduleData = appData.scheduleData || {};
+    // День является учебным, если для него есть запись, и она не null
     return scheduleData[day] !== undefined && scheduleData[day] !== null;
 }
 
@@ -65,6 +66,15 @@ function init() {
     journalAPI = initJournal(getAppData, saveData, fullRender);
     scheduleAPI = initSchedule(getAppData, saveData, fullRender);
     initUI(getAppData, saveData, isAdmin);
+    
+    // Восстанавливаем обработчик клика по имени студента
+    document.getElementById('student-list-container').addEventListener('click', (e) => {
+        const studentNameDiv = e.target.closest('.student-name.clickable');
+        if (studentNameDiv) {
+            const studentName = studentNameDiv.closest('.student-row').dataset.name;
+            openStudentStatsModal(studentName);
+        }
+    });
 
     const appDataRef = ref(database, 'journalData');
     onValue(appDataRef, (snapshot) => {
@@ -78,7 +88,6 @@ function init() {
             saveData();
         }
 
-        // ===== ИСПРАВЛЕНИЕ ЗДЕСЬ: Устанавливаем даты для графика =====
         const allDates = Object.keys(appData.attendanceData || {}).sort();
         const today = journalAPI.getCurrentDate();
         if (allDates.length > 0) {
@@ -87,7 +96,6 @@ function init() {
         } else {
             setChartDateRange(today, today);
         }
-        // ===== КОНЕЦ ИСПРАВЛЕНИЯ =====
 
         fullRender();
     });
