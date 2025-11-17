@@ -670,16 +670,19 @@ function setupEventListeners() {
         if(scheduleModal) scheduleModal.onclick = (e) => { if (e.target === scheduleModal) scheduleModal.classList.remove('show'); };
         if(saveScheduleBtn) saveScheduleBtn.onclick = saveScheduleChanges;
 
-        if(scheduleModal) scheduleModal.addEventListener('click', e => {
-            if (e.target.classList.contains('add-lesson-btn')) {
-                const day = e.target.dataset.day;
-                const list = scheduleModal.querySelector(`.editor-day-section[data-day="${day}"] .lessons-list`);
-                if(list) list.insertAdjacentHTML('beforeend', createLessonEditorRow());
-            }
-            if (e.target.classList.contains('delete-lesson-btn')) {
-                e.target.closest('.lesson-editor-row').remove();
-            }
-        });
+        if(scheduleModal) {
+            const scheduleEditorContainer = scheduleModal.querySelector('#schedule-editor-container');
+            if(scheduleEditorContainer) scheduleEditorContainer.addEventListener('click', e => {
+                if (e.target.classList.contains('add-lesson-btn')) {
+                    const day = e.target.dataset.day;
+                    const list = scheduleEditorContainer.querySelector(`.editor-day-section[data-day="${day}"] .lessons-list`);
+                    if(list) list.insertAdjacentHTML('beforeend', createLessonEditorRow());
+                }
+                if (e.target.classList.contains('delete-lesson-btn')) {
+                    e.target.closest('.lesson-editor-row').remove();
+                }
+            });
+        }
     }
 }
 
