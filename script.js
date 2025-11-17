@@ -18,7 +18,7 @@ const database = getDatabase(app);
 // --- 2. ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ И КОНСТАНТЫ ---
 const urlParams = new URLSearchParams(window.location.search);
 const isAdmin = urlParams.get('admin') === 'true';
-let appData = { students: [], attendanceData: {} };
+let appData = { students: [], attendanceData: {}, schedule: [1, 2, 3, 4, 5] };
 let currentDate = new Date().toISOString().split('T')[0];
 let attendanceChart = null;
 let studentChart = null;
@@ -40,45 +40,69 @@ const moonIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" str
 let datePicker, prevDayBtn, nextDayBtn, sheetDateDisplay, studentListContainer, 
     downloadBtn, copyBtn, statsContainer, settingsBtn, themeToggleBtn, 
     chartCanvas, chartStartDate, chartEndDate, settingsModal, closeModalBtn, 
-    saveStudentsBtn, studentListEditor, lineNumbers, exportDataBtn, 
+    studentListEditor, lineNumbers, exportDataBtn, 
     importDataBtn, importFileInput, studentStatsModal, studentStatsName, 
     studentStatsList, studentChartCanvas, statsStartDate, statsEndDate, 
-    downloadStudentChartBtn, studentStatsModalCloseBtn, downloadMainChartBtn;
+    downloadStudentChartBtn, studentStatsModalCloseBtn, downloadMainChartBtn,
+    saveSettingsBtn, scheduleEditor;
 
 // --- 4. ФУНКЦИИ ПРИЛОЖЕНИЯ ---
+function isSchoolDay(dateString) {
+    const schedule = appData.schedule || [];
+    const date = new Date(dateString + 'T00:00:00');
+    return schedule.includes(date.getDay());
+}
+
 function saveData() { if (isAdmin) set(ref(database, 'journalData'), appData); }
 
 function render() {
-    const { students = [], attendanceData = {} } = appData;
     sheetDateDisplay.textContent = formatDate(currentDate);
-    studentListContainer.innerHTML = '';
-    if (students.length === 0) {
-        studentListContainer.innerHTML = `<p style="text-align:center; color: var(--secondary-text-color); padding: 20px;">Список учеников пуст. Добавьте их в настройках.</p>`;
-    } else {
-        students.forEach(name => {
-            const row = document.createElement('div');
-            row.className = 'student-row';
-            row.dataset.name = name;
-            const currentDayData = attendanceData[currentDate] || {};
-            const studentStatus = currentDayData[name];
 
-            row.innerHTML = `<div class="student-name clickable">${name}</div><div class="status-buttons">
-                ${Object.keys(statuses).map(key => {
-                    let classes = `status-${key}`;
-                    if (typeof studentStatus === 'string' && studentStatus === key) {
-                        classes += ' active';
-                    } else if (Array.isArray(studentStatus)) {
-                        if (studentStatus[0] === key) classes += ' active-half status-half-left';
-                        if (studentStatus[1] === key) classes += ' active-half status-half-right';
-                    }
-                    return `<button class="${classes}" data-status="${key}" title="${statuses[key].text}">
-                                ${statusIcons[key]}
-                            </button>`;
-                }).join('')}</div>`;
-            studentListContainer.appendChild(row);
-        });
+    if (isSchoolDay(currentDate)) {
+        statsContainer.style.display = '';
+        copyBtn.disabled = false;
+        downloadBtn.disabled = false;
+        
+        const { students = [], attendanceData = {} } = appData;
+        studentListContainer.innerHTML = '';
+        if (students.length === 0) {
+            studentListContainer.innerHTML = `<p style="text-align:center; color: var(--secondary-text-color); padding: 20px;">Список учеников пуст. Добавьте их в настройках.</p>`;
+        } else {
+            students.forEach(name => {
+                const row = document.createElement('div');
+                row.className = 'student-row';
+                row.dataset.name = name;
+                const currentDayData = attendanceData[currentDate] || {};
+                const studentStatus = currentDayData[name];
+
+                row.innerHTML = `<div class="student-name clickable">${name}</div><div class="status-buttons">
+                    ${Object.keys(statuses).map(key => {
+                        let classes = `status-${key}`;
+                        if (typeof studentStatus === 'string' && studentStatus === key) {
+                            classes += ' active';
+                        } else if (Array.isArray(studentStatus)) {
+                            if (studentStatus[0] === key) classes += ' active-half status-half-left';
+                            if (studentStatus[1] === key) classes += ' active-half status-half-right';
+                        }
+                        return `<button class="${classes}" data-status="${key}" title="${statuses[key].text}">
+                                    ${statusIcons[key]}
+                                </button>`;
+                    }).join('')}</div>`;
+                studentListContainer.appendChild(row);
+            });
+        }
+        updateStats();
+    } else {
+        statsContainer.style.display = 'none';
+        copyBtn.disabled = true;
+        downloadBtn.disabled = true;
+        studentListContainer.innerHTML = `
+            <div class="day-off-message">
+                <span class="emoji">🌴</span>
+                Выходной день
+            </div>
+        `;
     }
-    updateStats();
 }
 
 function updateStats() {
@@ -341,12 +365,13 @@ function cacheDOMElements() {
     if (isAdmin) {
         settingsModal = document.getElementById('settings-modal');
         closeModalBtn = settingsModal.querySelector('.close-btn');
-        saveStudentsBtn = document.getElementById('save-students-btn');
         studentListEditor = document.getElementById('student-list-editor');
         lineNumbers = settingsModal.querySelector('.line-numbers');
         exportDataBtn = document.getElementById('export-data-btn');
         importDataBtn = document.getElementById('import-data-btn');
         importFileInput = document.getElementById('import-file-input');
+        saveSettingsBtn = document.getElementById('save-settings-btn');
+        scheduleEditor = document.getElementById('schedule-editor');
     }
 }
 
@@ -436,17 +461,34 @@ function setupEventListeners() {
     });
 
     if (isAdmin) {
-        if(settingsBtn) settingsBtn.onclick = () => {
+        settingsBtn.onclick = () => {
             studentListEditor.value = (appData.students || []).join('\n');
             updateLineNumbers();
+
+            const schedule = appData.schedule || [];
+            scheduleEditor.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+                checkbox.checked = schedule.includes(Number(checkbox.dataset.day));
+            });
+
             settingsModal.classList.add('show');
         };
+
         if(closeModalBtn) closeModalBtn.onclick = () => settingsModal.classList.remove('show');
         if(settingsModal) settingsModal.onclick = e => { if (e.target === settingsModal) settingsModal.classList.remove('show'); };
-        if(saveStudentsBtn) saveStudentsBtn.onclick = () => {
+        
+        if(saveSettingsBtn) saveSettingsBtn.onclick = () => {
             appData.students = studentListEditor.value.split('\n').map(s => s.trim()).filter(Boolean);
+            
+            const newSchedule = [];
+            scheduleEditor.querySelectorAll('input[type="checkbox"]:checked').forEach(checkbox => {
+                newSchedule.push(Number(checkbox.dataset.day));
+            });
+            appData.schedule = newSchedule;
+            
             saveData();
+            settingsModal.classList.remove('show');
         };
+
         if(studentListEditor) studentListEditor.addEventListener('input', updateLineNumbers);
         if(exportDataBtn) exportDataBtn.onclick = () => {
             const dataStr = JSON.stringify(appData, null, 2);
@@ -466,11 +508,11 @@ function setupEventListeners() {
             reader.onload = (e) => {
                 try {
                     const importedData = JSON.parse(e.target.result);
-                    if (importedData.students && importedData.attendanceData) {
+                    if (importedData.students && importedData.attendanceData && importedData.schedule) {
                         appData = importedData;
                         saveData();
                         settingsModal.classList.remove('show');
-                    } else { alert('Ошибка: неверный формат файла.'); }
+                    } else { alert('Ошибка: неверный формат файла. Убедитесь, что файл содержит students, attendanceData и schedule.'); }
                 } catch (error) { alert('Ошибка при чтении файла.'); }
             };
             reader.readAsText(file);
@@ -499,7 +541,8 @@ function init() {
         const data = snapshot.val();
         appData = {
             students: (data && data.students) || [],
-            attendanceData: (data && data.attendanceData) || {}
+            attendanceData: (data && data.attendanceData) || {},
+            schedule: (data && data.schedule) || [1, 2, 3, 4, 5]
         };
         if (!data && isAdmin) {
             saveData();
