@@ -68,8 +68,8 @@ function render() {
                     if (typeof studentStatus === 'string' && studentStatus === key) {
                         classes += ' active';
                     } else if (Array.isArray(studentStatus)) {
-                        if (studentStatus[0] === key) classes += ' status-half-left active-half';
-                        if (studentStatus[1] === key) classes += ' status-half-right active-half';
+                        if (studentStatus[0] === key) classes += ' active-half status-half-left';
+                        if (studentStatus[1] === key) classes += ' active-half status-half-right';
                     }
                     return `<button class="${classes}" data-status="${key}" title="${statuses[key].text}">
                                 ${statusIcons[key]}
@@ -290,8 +290,12 @@ function handleStatusClick(e) {
 
     let currentStatus = appData.attendanceData[currentDate][name];
     
-    if (typeof currentStatus === 'string') {
-        // State 1: A single status is active
+    // State 0: Nothing is active -> Set a single status
+    if (!currentStatus) {
+        appData.attendanceData[currentDate][name] = clickedStatus;
+    } 
+    // State 1: A single status is active
+    else if (typeof currentStatus === 'string') {
         if (currentStatus === clickedStatus) {
             // Clicked the same button again -> Clear status
             delete appData.attendanceData[currentDate][name];
@@ -299,8 +303,9 @@ function handleStatusClick(e) {
             // Clicked a different button -> Create a pair
             appData.attendanceData[currentDate][name] = [currentStatus, clickedStatus];
         }
-    } else if (Array.isArray(currentStatus)) {
-        // State 2: A pair of statuses is active
+    } 
+    // State 2: A pair of statuses is active
+    else if (Array.isArray(currentStatus)) {
         const statusIndex = currentStatus.indexOf(clickedStatus);
         if (statusIndex > -1) {
             // Clicked one of the halves -> Remove it, the other becomes full
@@ -311,9 +316,6 @@ function handleStatusClick(e) {
             currentStatus[1] = clickedStatus;
             appData.attendanceData[currentDate][name] = currentStatus;
         }
-    } else {
-        // State 0: Nothing is active -> Set a single status
-        appData.attendanceData[currentDate][name] = clickedStatus;
     }
 
     saveData();
@@ -487,44 +489,4 @@ function setupEventListeners() {
     }
 }
 
-function updateLineNumbers() {
-    if (isAdmin && studentListEditor && lineNumbers) {
-        const lineCount = studentListEditor.value.split('\n').length;
-        lineNumbers.innerHTML = Array.from({ length: lineCount }, (_, i) => `<span>${i + 1}</span>`).join('');
-    }
-}
-
-function init() {
-    cacheDOMElements();
-    applyTheme(localStorage.getItem('theme') || 'light');
-    if (!isAdmin) {
-        document.body.classList.add('guest-mode');
-    } else {
-        document.title += " [Admin]";
-    }
-    const appDataRef = ref(database, 'journalData');
-    onValue(appDataRef, (snapshot) => {
-        const data = snapshot.val();
-        appData = {
-            students: (data && data.students) || [],
-            attendanceData: (data && data.attendanceData) || {}
-        };
-        if (!data && isAdmin) {
-            saveData();
-        }
-        const allDates = Object.keys(appData.attendanceData || {}).sort();
-        if (allDates.length > 0) {
-            chartStartDate.value = allDates[0];
-            chartEndDate.value = allDates[allDates.length - 1] > currentDate ? allDates[allDates.length - 1] : currentDate;
-        } else {
-            chartStartDate.value = currentDate;
-            chartEndDate.value = currentDate;
-        }
-        render();
-        renderChart();
-    });
-    datePicker.value = currentDate;
-    setupEventListeners();
-}
-
-document.addEventListener('DOMContentLoaded', init);
+function updateLin
