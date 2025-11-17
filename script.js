@@ -358,8 +358,11 @@ function renderSchedule() {
 }
 
 function renderScheduleEditor() {
+    const editorContainer = document.getElementById('schedule-editor-container');
+    if (!editorContainer) return;
+
     const schedule = appData.schedule || {};
-    scheduleEditorContainer.innerHTML = '';
+    editorContainer.innerHTML = '';
 
     Object.keys(daysOfWeek).forEach(dayKey => {
         const dayLessons = schedule[dayKey] || [];
@@ -374,7 +377,7 @@ function renderScheduleEditor() {
             <div class="lessons-list">${lessonsHTML}</div>
             <button class="add-lesson-btn secondary-button" data-day="${dayKey}">+ Добавить урок</button>
         `;
-        scheduleEditorContainer.appendChild(section);
+        editorContainer.appendChild(section);
     });
 }
 
@@ -394,6 +397,9 @@ function createLessonEditorRow(lesson = {}) {
 }
 
 function saveScheduleChanges() {
+    const scheduleEditorContainer = document.getElementById('schedule-editor-container');
+    if (!scheduleEditorContainer) return;
+    
     const newSchedule = {};
     const daySections = scheduleEditorContainer.querySelectorAll('.editor-day-section');
     
@@ -499,6 +505,7 @@ function cacheDOMElements() {
         exportDataBtn = document.getElementById('export-data-btn');
         importDataBtn = document.getElementById('import-data-btn');
         importFileInput = document.getElementById('import-file-input');
+        
         editDutyBtn = document.getElementById('edit-duty-btn');
         dutyModal = document.getElementById('duty-modal');
         dutyModalDate = document.getElementById('duty-modal-date');
@@ -511,7 +518,6 @@ function cacheDOMElements() {
         editScheduleBtn = document.getElementById('edit-schedule-btn');
         scheduleModal = document.getElementById('schedule-modal');
         scheduleModalCloseBtn = scheduleModal.querySelector('.close-btn');
-        scheduleEditorContainer = document.getElementById('schedule-editor-container');
         saveScheduleBtn = document.getElementById('save-schedule-btn');
     }
 }
@@ -661,6 +667,7 @@ function setupEventListeners() {
         if(scheduleModal) scheduleModal.onclick = (e) => { if (e.target === scheduleModal) scheduleModal.classList.remove('show'); };
         if(saveScheduleBtn) saveScheduleBtn.onclick = saveScheduleChanges;
 
+        const scheduleEditorContainer = document.getElementById('schedule-editor-container');
         if(scheduleEditorContainer) scheduleEditorContainer.addEventListener('click', e => {
             if (e.target.classList.contains('add-lesson-btn')) {
                 const day = e.target.dataset.day;
