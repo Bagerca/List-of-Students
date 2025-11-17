@@ -37,7 +37,7 @@ body {
 
 header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
 header h1 { font-size: 1.8rem; font-weight: 700; }
-.header-controls { display: flex; align-items: center; gap: 15px; flex-wrap: wrap; }
+.header-controls { display: flex; align-items: center; gap: 15px; }
 #date-picker, .chart-controls input[type="date"] { padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 1rem; color: var(--secondary-text-color); background-color: var(--card-bg-color); }
 #settings-btn, #theme-toggle-btn { background: none; border: none; cursor: pointer; color: var(--secondary-text-color); padding: 8px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: background-color 0.2s ease, color 0.2s ease; }
 #settings-btn:hover, #theme-toggle-btn:hover { background-color: var(--border-color); color: var(--primary-text-color); }
@@ -76,54 +76,42 @@ body.theme-dark .sheet-header { background-color: #3a3b3c; }
 body.theme-dark .student-row:hover { background-color: rgba(255,255,255,0.05); }
 .student-name { flex-grow: 1; font-size: 1rem; font-weight: 500; }
 .status-buttons { display: flex; gap: 8px; }
-
-.status-buttons button { 
-    width: 36px; height: 36px; border-radius: 8px; 
-    border: 1px solid var(--border-color); 
-    background: var(--card-bg-color);
-    cursor: pointer; display: flex; align-items: center; justify-content: center; 
-    color: var(--secondary-text-color); 
-    transition: all 0.2s ease;
-    position: relative;
-    overflow: hidden;
-}
+.status-buttons button { width: 36px; height: 36px; border-radius: 8px; border: 1px solid var(--border-color); background-color: var(--card-bg-color); cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--secondary-text-color); transition: all 0.2s ease; }
 .status-buttons button:hover { border-color: var(--accent-color); color: var(--accent-color); }
+.status-buttons button.active { color: white; border: 1px solid transparent; }
+button.status-present.active { background-color: var(--green); border-color: var(--green); }
+button.status-late.active { background-color: var(--yellow); border-color: var(--yellow); color: #333; }
+button.status-absent.active { background-color: var(--red); border-color: var(--red); }
+button.status-sick.active { background-color: var(--blue); border-color: var(--blue); }
+button.status-excused.active { background-color: var(--grey); border-color: var(--grey); }
+.status-buttons button svg { width: 20px; height: 20px; }
 
-.status-buttons button svg {
-    width: 20px;
-    height: 20px;
-    position: relative;
-    z-index: 1;
+/* ===== НОВЫЕ СТИЛИ ДЛЯ ПОЛОВИНОК ===== */
+.status-buttons button.status-half-left,
+.status-buttons button.status-half-right {
+    color: white;
+    border-color: transparent;
+    background-size: 200% 100%;
+    transition: background-position 0.3s ease;
 }
+.status-buttons button.status-half-left { background-position: left; }
+.status-buttons button.status-half-right { background-position: right; }
 
-.status-buttons button.active { color: white; border-color: transparent; }
+.status-buttons .status-present.status-half-left { background-image: linear-gradient(to right, var(--green) 50%, var(--card-bg-color) 50%); }
+.status-buttons .status-present.status-half-right { background-image: linear-gradient(to left, var(--green) 50%, var(--card-bg-color) 50%); }
 
-button.status-present.active { background: var(--green); }
-button.status-late.active { background: var(--yellow); }
-button.status-absent.active { background: var(--red); }
-button.status-sick.active { background: var(--blue); }
-button.status-excused.active { background: var(--grey); }
+.status-buttons .status-late.status-half-left { background-image: linear-gradient(to right, var(--yellow) 50%, var(--card-bg-color) 50%); color: #333; }
+.status-buttons .status-late.status-half-right { background-image: linear-gradient(to left, var(--yellow) 50%, var(--card-bg-color) 50%); color: #333; }
 
-.status-buttons button.active-half::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    height: 100%;
-    width: 50%;
-}
-.status-buttons button.status-half-left::before { left: 0; }
-.status-buttons button.status-half-right::before { right: 0; }
+.status-buttons .status-absent.status-half-left { background-image: linear-gradient(to right, var(--red) 50%, var(--card-bg-color) 50%); }
+.status-buttons .status-absent.status-half-right { background-image: linear-gradient(to left, var(--red) 50%, var(--card-bg-color) 50%); }
 
-.status-buttons button.active-half { border-color: transparent; color: white; }
+.status-buttons .status-sick.status-half-left { background-image: linear-gradient(to right, var(--blue) 50%, var(--card-bg-color) 50%); }
+.status-buttons .status-sick.status-half-right { background-image: linear-gradient(to left, var(--blue) 50%, var(--card-bg-color) 50%); }
 
-.status-buttons .status-present.active-half::before { background-color: var(--green); }
-.status-buttons .status-late.active-half::before { background-color: var(--yellow); }
-.status-buttons .status-absent.active-half::before { background-color: var(--red); }
-.status-buttons .status-sick.active-half::before { background-color: var(--blue); }
-.status-buttons .status-excused.active-half::before { background-color: var(--grey); }
+.status-buttons .status-excused.status-half-left { background-image: linear-gradient(to right, var(--grey) 50%, var(--card-bg-color) 50%); }
+.status-buttons .status-excused.status-half-right { background-image: linear-gradient(to left, var(--grey) 50%, var(--card-bg-color) 50%); }
 
-#student-list-container .day-off-message { padding: 40px 20px; text-align: center; color: var(--secondary-text-color); }
-#student-list-container .day-off-message .emoji { font-size: 3rem; display: block; margin-bottom: 12px; }
 
 .chart-section { margin-top: 24px; padding: 24px; background-color: var(--card-bg-color); border-radius: 12px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); }
 .chart-section h2 { margin-bottom: 16px; font-size: 1.5rem; }
@@ -132,122 +120,11 @@ button.status-excused.active { background: var(--grey); }
 .chart-container { position: relative; width: 100%; height: 350px; }
 
 .section-actions { display: flex; justify-content: center; gap: 12px; margin: 24px 0 0 0; }
-.section-actions button:disabled { opacity: 0.5; cursor: not-allowed; }
 .primary-button, .secondary-button { display: flex; align-items: center; gap: 8px; font-family: var(--font-family); font-size: 1rem; font-weight: 600; padding: 12px 24px; border-radius: 8px; border: none; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); }
 .primary-button { background-color: var(--accent-color); color: white; }
 .primary-button:hover { background-color: var(--accent-color-hover); box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15); }
 .secondary-button { background-color: var(--card-bg-color); color: var(--primary-text-color); border: 1px solid var(--border-color); }
 .secondary-button:hover { background-color: var(--bg-color); }
-
-.schedule-section { margin-top: 24px; }
-.week-navigator {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-bottom: 20px;
-    background-color: var(--card-bg-color);
-    padding: 12px;
-    border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-}
-.week-navigator h2 { font-size: 1.2rem; margin: 0 20px; }
-.week-navigator button {
-    background: none;
-    border: none;
-    cursor: pointer;
-    color: var(--secondary-text-color);
-    padding: 8px;
-    border-radius: 50%;
-}
-.week-navigator button:hover { background-color: var(--bg-color); }
-
-.week-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 16px;
-}
-.day-card {
-    background-color: var(--card-bg-color);
-    border-radius: 12px;
-    padding: 16px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-    display: flex;
-    flex-direction: column;
-    position: relative;
-    min-height: 250px;
-}
-.day-card.day-off {
-    opacity: 0.6;
-}
-.day-card-header {
-    margin-bottom: 12px;
-    border-bottom: 1px solid var(--border-color);
-    padding-bottom: 12px;
-}
-.day-card-header h3 { font-size: 1rem; }
-.day-card-header .date { font-size: 0.8rem; color: var(--secondary-text-color); }
-.day-card ul { list-style: none; padding-left: 20px; }
-.day-card li { position: relative; margin-bottom: 4px; }
-.day-card li::before {
-    content: '●';
-    position: absolute;
-    left: -18px;
-    color: var(--accent-color);
-    font-size: 0.8rem;
-}
-.homework {
-    margin-top: auto;
-    padding-top: 12px;
-    border-top: 1px solid var(--border-color);
-}
-.homework h4 { font-size: 0.8rem; color: var(--secondary-text-color); margin-bottom: 4px; }
-.homework-content, .day-off-message { white-space: pre-wrap; word-wrap: break-word; }
-.day-off-message { text-align: center; margin: auto; }
-.day-off-message .emoji { font-size: 2rem; }
-
-.edit-schedule-btn {
-    position: absolute;
-    top: 8px;
-    right: 8px;
-    background: var(--bg-color);
-    border: none;
-    border-radius: 50%;
-    width: 32px;
-    height: 32px;
-    cursor: pointer;
-    opacity: 0;
-    transition: opacity 0.2s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-.guest-mode .edit-schedule-btn { display: none !important; }
-body:not(.guest-mode) .day-card:hover .edit-schedule-btn { opacity: 1; }
-body:not(.guest-mode) .day-card.is-editing .edit-schedule-btn { display: none; }
-
-.schedule-editor {
-    display: none;
-    width: 100%;
-    padding: 8px;
-    border-radius: 6px;
-    border: 1px solid var(--accent-color);
-    background-color: var(--bg-color);
-    color: var(--primary-text-color);
-    font-family: var(--font-family);
-    resize: vertical;
-    min-height: 100px;
-}
-.day-card.is-editing .schedule-editor { display: block; }
-.day-card.is-editing .lessons-list,
-.day-card.is-editing .homework-content,
-.day-card.is-editing .day-off-message { display: none; }
-
-.edit-controls {
-    display: none;
-    gap: 10px;
-    margin-top: 10px;
-}
-.day-card.is-editing .edit-controls { display: flex; }
 
 .modal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); justify-content: center; align-items: center; opacity: 0; transition: opacity 0.3s ease; }
 .modal.show { display: flex; opacity: 1; }
@@ -262,8 +139,6 @@ body:not(.guest-mode) .day-card.is-editing .edit-schedule-btn { display: none; }
 .modal-content h3 { margin-bottom: 4px; }
 .data-buttons { display: flex; gap: 12px; margin-top: 16px; }
 .data-buttons button { flex-grow: 1; justify-content: center; }
-
-#save-students-btn { width: 100%; justify-content: center; }
 
 .code-editor { display: flex; background-color: #282c34; border: 1px solid #444; border-radius: 8px; margin-bottom: 16px; font-family: var(--font-mono); }
 .line-numbers { padding: 12px 8px 12px 12px; color: #6e7681; font-size: 1rem; line-height: 1.5; text-align: right; border-right: 1px solid #444; user-select: none; }
@@ -294,5 +169,4 @@ body:not(.guest-mode) .day-card.is-editing .edit-schedule-btn { display: none; }
     .section-actions { flex-direction: column; gap: 10px; }
     .section-actions button { width: 100%; justify-content: center; }
     .student-stats-layout { flex-direction: column; }
-    .week-grid { grid-template-columns: 1fr; }
 }
