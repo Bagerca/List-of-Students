@@ -472,9 +472,45 @@ function setupEventListeners() {
     if (themeToggleBtn) themeToggleBtn.addEventListener('click', toggleTheme);
     if (chartStartDate) chartStartDate.addEventListener('change', renderChart);
     if (chartEndDate) chartEndDate.addEventListener('change', renderChart);
-    if (downloadBtn) downloadBtn.addEventListener('click', () => { /* ... */ });
-    if (copyBtn) copyBtn.addEventListener('click', () => { /* ... */ });
-    if (downloadMainChartBtn) downloadMainChartBtn.addEventListener('click', () => { /* ... */ });
+    
+    if (downloadBtn) downloadBtn.addEventListener('click', () => {
+        html2canvas(document.getElementById('attendance-sheet'), { scale: 2 }).then(canvas => {
+            const link = document.createElement('a');
+            link.download = `attendance-${currentDate}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        });
+    });
+
+    if (copyBtn) copyBtn.addEventListener('click', () => {
+        const dayData = appData.attendanceData[currentDate] || {};
+        let reportText = `Отчет о посещаемости за ${formatDate(currentDate)}:\n\n`;
+        (appData.students || []).forEach(name => {
+            const status = dayData[name];
+            let statusText = 'Не отмечен';
+            if (typeof status === 'string') {
+                statusText = statuses[status]?.text || 'Не отмечен';
+            } else if (Array.isArray(status)) {
+                statusText = status.map(s => statuses[s]?.text).join(' / ');
+            }
+            reportText += `${name}: ${statusText}\n`;
+        });
+        navigator.clipboard.writeText(reportText).then(() => {
+            const btnText = copyBtn.querySelector('.btn-text');
+            const originalText = btnText.textContent;
+            btnText.textContent = 'Скопировано!';
+            setTimeout(() => { btnText.textContent = originalText; }, 2000);
+        });
+    });
+    
+    if (downloadMainChartBtn) downloadMainChartBtn.addEventListener('click', () => {
+        if (attendanceChart) {
+            const link = document.createElement('a');
+            link.href = attendanceChart.toBase64Image('image/png', 1);
+            link.download = `attendance_chart_${chartStartDate.value}_to_${chartEndDate.value}.png`;
+            link.click();
+        }
+    });
 
     if (studentListContainer) studentListContainer.addEventListener('click', e => {
         const studentNameDiv = e.target.closest('.student-name.clickable');
@@ -491,7 +527,29 @@ function setupEventListeners() {
     if(studentStatsModal) studentStatsModal.onclick = e => { if (e.target === studentStatsModal) studentStatsModal.classList.remove('show'); };
     if(statsStartDate) statsStartDate.addEventListener('change', updateStudentStats);
     if(statsEndDate) statsEndDate.addEventListener('change', updateStudentStats);
-    if(downloadStudentChartBtn) downloadStudentChartBtn.addEventListener('click', () => { /* ... */ });
+    
+    if(downloadStudentChartBtn) downloadStudentChartBtn.addEventListener('click', () => {
+        const modalContent = studentStatsModal.querySelector('.modal-content');
+        const closeBtn = studentStatsModal.querySelector('.close-btn');
+        const actionButtons = studentStatsModal.querySelector('.data-buttons');
+        const studentName = studentStatsModal.dataset.currentStudent.replace(' ', '_');
+        
+        closeBtn.style.visibility = 'hidden';
+        actionButtons.style.visibility = 'hidden';
+
+        html2canvas(modalContent, { 
+            scale: 2,
+            backgroundColor: window.getComputedStyle(modalContent).backgroundColor
+        }).then(canvas => {
+            const link = document.createElement('a');
+            link.href = canvas.toDataURL('image/png');
+            link.download = `stats_${studentName}_${statsStartDate.value}_to_${statsEndDate.value}.png`;
+            link.click();
+        }).finally(() => {
+            closeBtn.style.visibility = 'visible';
+            actionButtons.style.visibility = 'visible';
+        });
+    });
 
     if (isAdmin) {
         if(settingsBtn) settingsBtn.onclick = () => {
@@ -506,9 +564,34 @@ function setupEventListeners() {
             saveData();
         };
         if(studentListEditor) studentListEditor.addEventListener('input', updateLineNumbers);
-        if(exportDataBtn) exportDataBtn.onclick = () => { /* ... */ };
+        if(exportDataBtn) exportDataBtn.onclick = () => {
+            const dataStr = JSON.stringify(appData, null, 2);
+            const blob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `attendance_backup_${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(a); a.click(); document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        };
         if(importDataBtn) importDataBtn.onclick = () => { if(importFileInput) importFileInput.click(); };
-        if(importFileInput) importFileInput.onchange = (event) => { /* ... */ };
+        if(importFileInput) importFileInput.onchange = (event) => {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const importedData = JSON.parse(e.target.result);
+                    if (importedData.students && importedData.attendanceData) {
+                        appData = importedData;
+                        saveData();
+                        settingsModal.classList.remove('show');
+                    } else { alert('Ошибка: неверный формат файла.'); }
+                } catch (error) { alert('Ошибка при чтении файла.'); }
+            };
+            reader.readAsText(file);
+            importFileInput.value = '';
+        };
     }
     
     if (isAdmin || isScheduleEditor) {
