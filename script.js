@@ -291,28 +291,34 @@ function handleStatusClick(e) {
     let currentStatus = appData.attendanceData[currentDate][name];
     
     if (typeof currentStatus === 'string') {
+        // State 1: A single status is active
         if (currentStatus === clickedStatus) {
+            // Clicked the same button again -> Clear status
             delete appData.attendanceData[currentDate][name];
         } else {
+            // Clicked a different button -> Create a pair
             appData.attendanceData[currentDate][name] = [currentStatus, clickedStatus];
         }
     } else if (Array.isArray(currentStatus)) {
+        // State 2: A pair of statuses is active
         const statusIndex = currentStatus.indexOf(clickedStatus);
         if (statusIndex > -1) {
+            // Clicked one of the halves -> Remove it, the other becomes full
             currentStatus.splice(statusIndex, 1);
             appData.attendanceData[currentDate][name] = currentStatus[0];
         } else {
-            // Эта логика не должна срабатывать, т.к. нельзя добавить 3-й статус
-            // Но на всякий случай, если что-то пойдет не так
+            // Clicked a new button while a pair is active -> Replace the second half
             currentStatus[1] = clickedStatus;
             appData.attendanceData[currentDate][name] = currentStatus;
         }
     } else {
+        // State 0: Nothing is active -> Set a single status
         appData.attendanceData[currentDate][name] = clickedStatus;
     }
 
     saveData();
 }
+
 
 // --- 5. ФУНКЦИИ ИНИЦИАЛИЗАЦИИ ---
 
