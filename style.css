@@ -77,6 +77,7 @@ body.theme-dark .student-row:hover { background-color: rgba(255,255,255,0.05); }
 .student-name { flex-grow: 1; font-size: 1rem; font-weight: 500; }
 .status-buttons { display: flex; gap: 8px; }
 
+/* ===== ИСПРАВЛЕННАЯ СЕКЦИЯ CSS ===== */
 .status-buttons button { 
     width: 36px; height: 36px; border-radius: 8px; 
     border: 1px solid var(--border-color); 
@@ -84,44 +85,27 @@ body.theme-dark .student-row:hover { background-color: rgba(255,255,255,0.05); }
     cursor: pointer; display: flex; align-items: center; justify-content: center; 
     color: var(--secondary-text-color); 
     transition: all 0.2s ease;
-    background-size: 200% 100%;
+    background-repeat: no-repeat; /* Обязательно */
 }
 .status-buttons button:hover { border-color: var(--accent-color); color: var(--accent-color); }
 
 .status-buttons button.active { color: white; border: 1px solid transparent; }
-.status-buttons button.active-half { color: white; }
+.status-buttons button.active-half {
+    background-size: 50% 100%;
+    color: white;
+}
 
-button.status-present.active { background-color: var(--green); border-color: var(--green); }
-button.status-late.active { background-color: var(--yellow); border-color: var(--yellow); color: #333; }
-button.status-absent.active { background-color: var(--red); border-color: var(--red); }
-button.status-sick.active { background-color: var(--blue); border-color: var(--blue); }
-button.status-excused.active { background-color: var(--grey); border-color: var(--grey); }
+button.status-present.active, .status-present.active-half { background-color: var(--green); border-color: var(--green); }
+button.status-late.active, .status-late.active-half { background-color: var(--yellow); border-color: var(--yellow); color: #333; }
+button.status-absent.active, .status-absent.active-half { background-color: var(--red); border-color: var(--red); }
+button.status-sick.active, .status-sick.active-half { background-color: var(--blue); border-color: var(--blue); }
+button.status-excused.active, .status-excused.active-half { background-color: var(--grey); border-color: var(--grey); }
 
 .status-buttons button svg { width: 20px; height: 20px; }
 
-.status-buttons button.status-half-left,
-.status-buttons button.status-half-right {
-    border-color: transparent;
-    transition: background-position 0.3s ease;
-}
-
-.status-buttons button.status-half-left { background-position: left; }
-.status-buttons button.status-half-right { background-position: right; }
-
-.status-buttons .status-present.status-half-left, 
-.status-buttons .status-present.status-half-right { background-image: linear-gradient(to right, var(--green) 50%, var(--card-bg-color) 50.5%); }
-
-.status-buttons .status-late.status-half-left,
-.status-buttons .status-late.status-half-right { background-image: linear-gradient(to right, var(--yellow) 50%, var(--card-bg-color) 50.5%); }
-
-.status-buttons .status-absent.status-half-left,
-.status-buttons .status-absent.status-half-right { background-image: linear-gradient(to right, var(--red) 50%, var(--card-bg-color) 50.5%); }
-
-.status-buttons .status-sick.status-half-left,
-.status-buttons .status-sick.status-half-right { background-image: linear-gradient(to right, var(--blue) 50%, var(--card-bg-color) 50.5%); }
-
-.status-buttons .status-excused.status-half-left,
-.status-buttons .status-excused.status-half-right { background-image: linear-gradient(to right, var(--grey) 50%, var(--card-bg-color) 50.5%); }
+.status-buttons button.status-half-left { background-position: left center; }
+.status-buttons button.status-half-right { background-position: right center; }
+/* ===== КОНЕЦ ИСПРАВЛЕННОЙ СЕКЦИИ ===== */
 
 
 .chart-section { margin-top: 24px; padding: 24px; background-color: var(--card-bg-color); border-radius: 12px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); }
