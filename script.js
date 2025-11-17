@@ -68,7 +68,6 @@ function render() {
                     if (typeof studentStatus === 'string' && studentStatus === key) {
                         classes += ' active';
                     } else if (Array.isArray(studentStatus)) {
-                        // Если в массиве один статус, он тоже отображается как полный
                         if (studentStatus.length === 1 && studentStatus[0] === key) {
                             classes += ' active';
                         } else if (studentStatus.length === 2) {
@@ -306,12 +305,12 @@ function handleStatusClick(e) {
 
     const statusIndex = statusArray.indexOf(clickedStatus);
 
-    if (statusIndex > -1) { // Клик по уже активному статусу
+    if (statusIndex > -1) {
         statusArray.splice(statusIndex, 1);
-    } else { // Клик по новому статусу
+    } else {
         if (statusArray.length < 2) {
             statusArray.push(clickedStatus);
-        } else { // Если уже 2 статуса, заменяем второй (правый)
+        } else {
             statusArray[1] = clickedStatus;
         }
     }
@@ -321,7 +320,6 @@ function handleStatusClick(e) {
     } else if (statusArray.length === 1) {
         appData.attendanceData[currentDate][name] = statusArray[0];
     } else {
-        // НЕ СОРТИРУЕМ! Порядок важен для отображения лево/право
         appData.attendanceData[currentDate][name] = statusArray;
     }
 
