@@ -79,11 +79,8 @@ function render() {
                     <span class="checkmark"></span>
                 </div>`;
             } else {
-                // Если гость, показываем индикатор только для дежурных
-                dutyMarkerHTML = `
-                <div class="duty-marker">
-                    ${isOnDuty ? '<span class="duty-indicator"></span>' : ''}
-                </div>`;
+                // Если гость, показываем пустой div для сохранения отступа
+                dutyMarkerHTML = `<div class="duty-marker"></div>`;
             }
 
             row.innerHTML = `
