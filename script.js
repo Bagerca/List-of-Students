@@ -19,7 +19,7 @@ const database = getDatabase(app);
 const urlParams = new URLSearchParams(window.location.search);
 const isAdmin = urlParams.get('admin') === 'true';
 const isScheduleEditor = urlParams.get('schedule_editor') === 'true';
-let appData = { students: [], attendanceData: {}, schedule: {}, dutyAssignments: {} };
+let appData = { students: [], attendanceData: {}, schedule: {} };
 let currentDate = new Date().toISOString().split('T')[0];
 let attendanceChart = null;
 let studentChart = null;
@@ -47,8 +47,7 @@ let datePicker, prevDayBtn, nextDayBtn, sheetDateDisplay, studentListContainer,
     studentStatsList, studentChartCanvas, statsStartDate, statsEndDate, 
     downloadStudentChartBtn, studentStatsModalCloseBtn, downloadMainChartBtn,
     scheduleContainer, editScheduleBtn, scheduleModal, scheduleModalCloseBtn,
-    saveScheduleBtn,
-    editDutyBtn, dutyModal, dutyModalDate, dutyStudentList, saveDutyAssignmentBtn, dutyModalCloseBtn;
+    scheduleEditorContainer, saveScheduleBtn;
 
 // --- 4. ФУНКЦИИ ПРИЛОЖЕНИЯ ---
 function saveData() { 
@@ -57,11 +56,8 @@ function saveData() {
 
 function render() {
     const { students = [], attendanceData = {} } = appData;
-    const onDutyStudents = appData.dutyAssignments?.[currentDate] || [];
-
     sheetDateDisplay.textContent = formatDate(currentDate);
     studentListContainer.innerHTML = '';
-    
     if (students.length === 0) {
         studentListContainer.innerHTML = `<p style="text-align:center; color: var(--secondary-text-color); padding: 20px;">Список учеников пуст. Добавьте их в настройках.</p>`;
     } else {
@@ -69,11 +65,6 @@ function render() {
             const row = document.createElement('div');
             row.className = 'student-row';
             row.dataset.name = name;
-
-            if (onDutyStudents.includes(name)) {
-                row.classList.add('on-duty');
-            }
-
             const currentDayData = attendanceData[currentDate] || {};
             const studentStatus = currentDayData[name];
 
@@ -358,14 +349,8 @@ function renderSchedule() {
 }
 
 function renderScheduleEditor() {
-    const editorContainer = document.getElementById('schedule-editor-container');
-    if (!editorContainer) {
-        console.error("Schedule editor container not found!");
-        return;
-    }
-    
     const schedule = appData.schedule || {};
-    editorContainer.innerHTML = '';
+    scheduleEditorContainer.innerHTML = '';
 
     Object.keys(daysOfWeek).forEach(dayKey => {
         const dayLessons = schedule[dayKey] || [];
@@ -380,7 +365,7 @@ function renderScheduleEditor() {
             <div class="lessons-list">${lessonsHTML}</div>
             <button class="add-lesson-btn secondary-button" data-day="${dayKey}">+ Добавить урок</button>
         `;
-        editorContainer.appendChild(section);
+        scheduleEditorContainer.appendChild(section);
     });
 }
 
@@ -400,9 +385,6 @@ function createLessonEditorRow(lesson = {}) {
 }
 
 function saveScheduleChanges() {
-    const scheduleEditorContainer = document.getElementById('schedule-editor-container');
-    if (!scheduleEditorContainer) return;
-
     const newSchedule = {};
     const daySections = scheduleEditorContainer.querySelectorAll('.editor-day-section');
     
@@ -433,43 +415,7 @@ function saveScheduleChanges() {
         set(ref(database, 'journalData/schedule'), appData.schedule);
     }
     
-    if (scheduleModal) scheduleModal.classList.remove('show');
-}
-
-function openDutyModal() {
-    dutyModalDate.textContent = formatDate(currentDate);
-    const studentList = appData.students || [];
-    const currentDutyStudents = appData.dutyAssignments?.[currentDate] || [];
-    
-    dutyStudentList.innerHTML = studentList.map(name => `
-        <div class="duty-student-item">
-            <input type="checkbox" id="duty-${name.replace(/\s+/g, '-')}" value="${name}" ${currentDutyStudents.includes(name) ? 'checked' : ''}>
-            <label for="duty-${name.replace(/\s+/g, '-')}">${name}</label>
-        </div>
-    `).join('');
-    
-    dutyModal.classList.add('show');
-}
-
-function saveDutyAssignment() {
-    const selectedStudents = [];
-    const checkboxes = dutyStudentList.querySelectorAll('input[type="checkbox"]:checked');
-    checkboxes.forEach(checkbox => {
-        selectedStudents.push(checkbox.value);
-    });
-
-    if (!appData.dutyAssignments) {
-        appData.dutyAssignments = {};
-    }
-
-    if (selectedStudents.length > 0) {
-        appData.dutyAssignments[currentDate] = selectedStudents;
-    } else {
-        delete appData.dutyAssignments[currentDate];
-    }
-    
-    saveData();
-    dutyModal.classList.remove('show');
+    scheduleModal.classList.remove('show');
 }
 
 // --- 5. ФУНКЦИИ ИНИЦИАЛИЗАЦИИ ---
@@ -508,19 +454,13 @@ function cacheDOMElements() {
         exportDataBtn = document.getElementById('export-data-btn');
         importDataBtn = document.getElementById('import-data-btn');
         importFileInput = document.getElementById('import-file-input');
-        
-        editDutyBtn = document.getElementById('edit-duty-btn');
-        dutyModal = document.getElementById('duty-modal');
-        dutyModalDate = document.getElementById('duty-modal-date');
-        dutyStudentList = document.getElementById('duty-student-list');
-        saveDutyAssignmentBtn = document.getElementById('save-duty-assignment-btn');
-        dutyModalCloseBtn = dutyModal.querySelector('.close-btn');
     }
     
     if (isAdmin || isScheduleEditor) {
         editScheduleBtn = document.getElementById('edit-schedule-btn');
         scheduleModal = document.getElementById('schedule-modal');
         scheduleModalCloseBtn = scheduleModal.querySelector('.close-btn');
+        scheduleEditorContainer = document.getElementById('schedule-editor-container');
         saveScheduleBtn = document.getElementById('save-schedule-btn');
     }
 }
@@ -652,37 +592,27 @@ function setupEventListeners() {
             reader.readAsText(file);
             importFileInput.value = '';
         };
-        
-        if (editDutyBtn) editDutyBtn.addEventListener('click', openDutyModal);
-        if (dutyModalCloseBtn) dutyModalCloseBtn.addEventListener('click', () => dutyModal.classList.remove('show'));
-        if (dutyModal) dutyModal.addEventListener('click', (e) => {
-            if (e.target === dutyModal) dutyModal.classList.remove('show');
-        });
-        if (saveDutyAssignmentBtn) saveDutyAssignmentBtn.addEventListener('click', saveDutyAssignment);
     }
     
     if (isAdmin || isScheduleEditor) {
         if(editScheduleBtn) editScheduleBtn.onclick = () => {
             renderScheduleEditor();
-            if (scheduleModal) scheduleModal.classList.add('show');
+            scheduleModal.classList.add('show');
         };
         if(scheduleModalCloseBtn) scheduleModalCloseBtn.onclick = () => scheduleModal.classList.remove('show');
         if(scheduleModal) scheduleModal.onclick = (e) => { if (e.target === scheduleModal) scheduleModal.classList.remove('show'); };
         if(saveScheduleBtn) saveScheduleBtn.onclick = saveScheduleChanges;
 
-        if(scheduleModal) {
-            const scheduleEditorContainer = scheduleModal.querySelector('#schedule-editor-container');
-            if(scheduleEditorContainer) scheduleEditorContainer.addEventListener('click', e => {
-                if (e.target.classList.contains('add-lesson-btn')) {
-                    const day = e.target.dataset.day;
-                    const list = scheduleEditorContainer.querySelector(`.editor-day-section[data-day="${day}"] .lessons-list`);
-                    if(list) list.insertAdjacentHTML('beforeend', createLessonEditorRow());
-                }
-                if (e.target.classList.contains('delete-lesson-btn')) {
-                    e.target.closest('.lesson-editor-row').remove();
-                }
-            });
-        }
+        if(scheduleEditorContainer) scheduleEditorContainer.addEventListener('click', e => {
+            if (e.target.classList.contains('add-lesson-btn')) {
+                const day = e.target.dataset.day;
+                const list = scheduleEditorContainer.querySelector(`.editor-day-section[data-day="${day}"] .lessons-list`);
+                list.insertAdjacentHTML('beforeend', createLessonEditorRow());
+            }
+            if (e.target.classList.contains('delete-lesson-btn')) {
+                e.target.closest('.lesson-editor-row').remove();
+            }
+        });
     }
 }
 
@@ -754,8 +684,7 @@ function init() {
         appData = {
             students: data.students || [],
             attendanceData: data.attendanceData || {},
-            schedule: data.schedule || {},
-            dutyAssignments: data.dutyAssignments || {}
+            schedule: data.schedule || {}
         };
         if (!snapshot.val() && isAdmin) {
             saveData();
