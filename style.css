@@ -77,11 +77,10 @@ body.theme-dark .student-row:hover { background-color: rgba(255,255,255,0.05); }
 .student-name { flex-grow: 1; font-size: 1rem; font-weight: 500; }
 .status-buttons { display: flex; gap: 8px; }
 
-/* ===== ПОЛНОСТЬЮ ПЕРЕРАБОТАННЫЙ БЛОК СТИЛЕЙ КНОПОК ===== */
 .status-buttons button { 
     width: 36px; height: 36px; border-radius: 8px; 
     border: 1px solid var(--border-color); 
-    background: var(--card-bg-color); /* Используем background вместо background-color */
+    background: var(--card-bg-color);
     cursor: pointer; display: flex; align-items: center; justify-content: center; 
     color: var(--secondary-text-color); 
     transition: all 0.2s ease;
@@ -104,17 +103,19 @@ button.status-absent.active { background: var(--red); }
 button.status-sick.active { background: var(--blue); }
 button.status-excused.active { background: var(--grey); }
 
-.status-buttons button.status-half-left { background: linear-gradient(to right, var(--color-var) 50%, var(--card-bg-color) 50%); }
-.status-buttons button.status-half-right { background: linear-gradient(to left, var(--color-var) 50%, var(--card-bg-color) 50%); }
+/* ===== ИСПРАВЛЕННЫЙ БЛОК ===== */
+.status-buttons button.status-half-left { background: linear-gradient(to right, var(--color-var) 50%, var(--card-bg-color) 50.5%); }
+.status-buttons button.status-half-right { background: linear-gradient(to left, var(--color-var) 50%, var(--card-bg-color) 50.5%); }
 
 .status-buttons .status-present.active-half { --color-var: var(--green); }
 .status-buttons .status-late.active-half { --color-var: var(--yellow); }
 .status-buttons .status-absent.active-half { --color-var: var(--red); }
 .status-buttons .status-sick.active-half { --color-var: var(--blue); }
 .status-buttons .status-excused.active-half { --color-var: var(--grey); }
+/* ===== КОНЕЦ ИСПРАВЛЕННОГО БЛОКА ===== */
 
 .status-buttons button svg { width: 20px; height: 20px; }
-/* ===== КОНЕЦ ПЕРЕРАБОТАННОГО БЛОКА ===== */
+
 
 .chart-section { margin-top: 24px; padding: 24px; background-color: var(--card-bg-color); border-radius: 12px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); }
 .chart-section h2 { margin-bottom: 16px; font-size: 1.5rem; }
