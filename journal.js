@@ -1,10 +1,7 @@
 // journal.js
 
 let currentDate = new Date().toISOString().split('T')[0];
-
-// ===== ИЗМЕНЕНИЕ ЗДЕСЬ: Модуль больше не хранит appData =====
-let getAppData; 
-let saveData;
+let getAppData, saveData, fullRender;
 
 let datePicker, prevDayBtn, nextDayBtn, sheetDateDisplay, studentListContainer, 
     downloadBtn, copyBtn, statsContainer;
@@ -20,13 +17,6 @@ const statusIcons = {
     sick: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path><path d="M3.22 12H9.5l.7-1.5L11.5 13l1.5-2.5L14.5 12H21"></path></svg>`,
     excused: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line></svg>`
 };
-
-function isSchoolDay(dateString) {
-    const appData = getAppData();
-    const day = new Date(dateString + 'T00:00:00').getDay();
-    const scheduleData = appData.scheduleData || {};
-    return scheduleData[day] !== undefined && scheduleData[day] !== null;
-}
 
 function formatDate(d) {
     return new Date(d + 'T00:00:00').toLocaleDateString('ru-RU', { year: 'numeric', month: 'long', day: 'numeric' });
@@ -58,52 +48,52 @@ function updateStats() {
 export function renderJournal() {
     const appData = getAppData();
     sheetDateDisplay.textContent = formatDate(currentDate);
-
-    if (isSchoolDay(currentDate)) {
-        statsContainer.style.display = '';
-        copyBtn.disabled = false;
-        downloadBtn.disabled = false;
-        
-        const { students = [], attendanceData = {} } = appData;
-        studentListContainer.innerHTML = '';
-        if (students.length === 0) {
-            studentListContainer.innerHTML = `<p style="text-align:center; color: var(--secondary-text-color); padding: 20px;">Список учеников пуст.</p>`;
-        } else {
-            students.forEach(name => {
-                const row = document.createElement('div');
-                row.className = 'student-row';
-                row.dataset.name = name;
-                const currentDayData = attendanceData[currentDate] || {};
-                const studentStatus = currentDayData[name];
-
-                row.innerHTML = `<div class="student-name clickable">${name}</div><div class="status-buttons">
-                    ${Object.keys(statuses).map(key => {
-                        let classes = `status-${key}`;
-                        if (typeof studentStatus === 'string' && studentStatus === key) {
-                            classes += ' active';
-                        } else if (Array.isArray(studentStatus)) {
-                            if (studentStatus[0] === key) classes += ' active-half status-half-left';
-                            if (studentStatus[1] === key) classes += ' active-half status-half-right';
-                        }
-                        return `<button class="${classes}" data-status="${key}" title="${statuses[key].text}">
-                                    ${statusIcons[key]}
-                                </button>`;
-                    }).join('')}</div>`;
-                studentListContainer.appendChild(row);
-            });
-        }
-        updateStats();
+    statsContainer.style.display = '';
+    copyBtn.disabled = false;
+    downloadBtn.disabled = false;
+    
+    const { students = [], attendanceData = {} } = appData;
+    studentListContainer.innerHTML = '';
+    if (students.length === 0) {
+        studentListContainer.innerHTML = `<p style="text-align:center; color: var(--secondary-text-color); padding: 20px;">Список учеников пуст.</p>`;
     } else {
-        statsContainer.style.display = 'none';
-        copyBtn.disabled = true;
-        downloadBtn.disabled = true;
-        studentListContainer.innerHTML = `
-            <div class="day-off-message">
-                <span class="emoji">🌴</span>
-                Выходной день
-            </div>
-        `;
+        students.forEach(name => {
+            const row = document.createElement('div');
+            row.className = 'student-row';
+            row.dataset.name = name;
+            const currentDayData = attendanceData[currentDate] || {};
+            const studentStatus = currentDayData[name];
+
+            row.innerHTML = `<div class="student-name clickable">${name}</div><div class="status-buttons">
+                ${Object.keys(statuses).map(key => {
+                    let classes = `status-${key}`;
+                    if (typeof studentStatus === 'string' && studentStatus === key) {
+                        classes += ' active';
+                    } else if (Array.isArray(studentStatus)) {
+                        if (studentStatus[0] === key) classes += ' active-half status-half-left';
+                        if (studentStatus[1] === key) classes += ' active-half status-half-right';
+                    }
+                    return `<button class="${classes}" data-status="${key}" title="${statuses[key].text}">
+                                ${statusIcons[key]}
+                            </button>`;
+                }).join('')}</div>`;
+            studentListContainer.appendChild(row);
+        });
     }
+    updateStats();
+}
+
+export function showDayOffMessageInJournal() {
+    sheetDateDisplay.textContent = formatDate(currentDate);
+    statsContainer.style.display = 'none';
+    copyBtn.disabled = true;
+    downloadBtn.disabled = true;
+    studentListContainer.innerHTML = `
+        <div class="day-off-message">
+            <span class="emoji">🌴</span>
+            Выходной день
+        </div>
+    `;
 }
 
 function handleStatusClick(e) {
@@ -115,17 +105,12 @@ function handleStatusClick(e) {
     const name = row.dataset.name;
     const clickedStatus = button.dataset.status;
 
-    if (!appData.attendanceData) appData.attendanceData = {};
     if (!appData.attendanceData[currentDate]) appData.attendanceData[currentDate] = {};
-
     let currentStatus = appData.attendanceData[currentDate][name];
     
     if (typeof currentStatus === 'string') {
-        if (currentStatus === clickedStatus) {
-            delete appData.attendanceData[currentDate][name];
-        } else {
-            appData.attendanceData[currentDate][name] = [currentStatus, clickedStatus];
-        }
+        if (currentStatus === clickedStatus) delete appData.attendanceData[currentDate][name];
+        else appData.attendanceData[currentDate][name] = [currentStatus, clickedStatus];
     } else if (Array.isArray(currentStatus)) {
         const statusIndex = currentStatus.indexOf(clickedStatus);
         if (statusIndex > -1) {
@@ -146,12 +131,13 @@ function changeDate(offset) {
     currentDateObj.setDate(currentDateObj.getDate() + offset);
     currentDate = currentDateObj.toISOString().split('T')[0];
     datePicker.value = currentDate;
-    renderJournal();
+    fullRender();
 }
 
-export function initJournal(_getAppData, _saveData) {
+export function initJournal(_getAppData, _saveData, _fullRender) {
     getAppData = _getAppData;
     saveData = _saveData;
+    fullRender = _fullRender;
 
     datePicker = document.getElementById('date-picker');
     prevDayBtn = document.getElementById('prev-day-btn');
@@ -166,7 +152,7 @@ export function initJournal(_getAppData, _saveData) {
 
     datePicker.addEventListener('change', e => { 
         currentDate = e.target.value; 
-        renderJournal();
+        fullRender();
     });
     prevDayBtn.addEventListener('click', () => changeDate(-1));
     nextDayBtn.addEventListener('click', () => changeDate(1));
@@ -190,12 +176,7 @@ export function initJournal(_getAppData, _saveData) {
             }
             reportText += `${name}: ${statusText}\n`;
         });
-        navigator.clipboard.writeText(reportText).then(() => {
-            const btnText = copyBtn.querySelector('.btn-text');
-            const originalText = btnText.textContent;
-            btnText.textContent = 'Скопировано!';
-            setTimeout(() => { btnText.textContent = originalText; }, 2000);
-        });
+        navigator.clipboard.writeText(reportText);
     });
 
     downloadBtn.addEventListener('click', () => {
