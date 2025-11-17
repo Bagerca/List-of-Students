@@ -70,11 +70,24 @@ function render() {
             const currentDayData = attendanceData[currentDate] || {};
             const studentStatus = currentDayData[name];
 
-            row.innerHTML = `
+            let dutyMarkerHTML = '';
+            if (isAdmin) {
+                // Если админ, показываем полноценный чекбокс
+                dutyMarkerHTML = `
                 <div class="duty-marker">
                     <input type="checkbox" class="duty-checkbox" ${isOnDuty ? 'checked' : ''} title="Отметить дежурным">
                     <span class="checkmark"></span>
-                </div>
+                </div>`;
+            } else {
+                // Если гость, показываем индикатор только для дежурных
+                dutyMarkerHTML = `
+                <div class="duty-marker">
+                    ${isOnDuty ? '<span class="duty-indicator"></span>' : ''}
+                </div>`;
+            }
+
+            row.innerHTML = `
+                ${dutyMarkerHTML}
                 <div class="student-name clickable">${name}</div>
                 <div class="status-buttons">
                     ${Object.keys(statuses).map(key => {
