@@ -92,7 +92,7 @@ button.status-excused.active { background-color: var(--grey); border-color: var(
 .chart-controls label { display: flex; align-items: center; gap: 8px; color: var(--secondary-text-color); }
 .chart-container { position: relative; width: 100%; height: 350px; }
 
-footer { display: flex; justify-content: center; gap: 12px; margin-top: 24px; }
+.section-actions { display: flex; justify-content: center; gap: 12px; margin: 24px 0 0 0; }
 .primary-button, .secondary-button { display: flex; align-items: center; gap: 8px; font-family: var(--font-family); font-size: 1rem; font-weight: 600; padding: 12px 24px; border-radius: 8px; border: none; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); }
 .primary-button { background-color: var(--accent-color); color: white; }
 .primary-button:hover { background-color: var(--accent-color-hover); box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15); }
@@ -122,61 +122,21 @@ footer { display: flex; justify-content: center; gap: 12px; margin-top: 24px; }
 .guest-mode .status-buttons button { pointer-events: none; }
 .guest-mode .modal-content button, .guest-mode .modal-content textarea { pointer-events: none; opacity: 0.7; }
 
-/* --- НОВЫЕ СТИЛИ --- */
-/* Делаем имя студента кликабельным */
-.student-name.clickable {
-    cursor: pointer;
-    text-decoration: none;
-    transition: color 0.2s ease;
-}
-.student-name.clickable:hover {
-    color: var(--accent-color);
-}
-
-/* Стили для макета в модальном окне статистики */
-.student-stats-layout {
-    display: flex;
-    align-items: center;
-    gap: 24px;
-    margin-top: 16px;
-}
-
-.student-chart-container {
-    width: 180px;
-    height: 180px;
-    flex-shrink: 0;
-}
-
-#student-stats-list {
-    list-style: none;
-    padding: 0;
-    font-size: 1rem;
-    flex-grow: 1;
-}
-
-#student-stats-list li {
-    padding: 8px 0;
-    border-bottom: 1px solid var(--border-color);
-    display: flex;
-    justify-content: space-between;
-}
-#student-stats-list li:last-child {
-    border-bottom: none;
-}
-#student-stats-list strong {
-    font-weight: 600;
-}
+.student-name.clickable { cursor: pointer; text-decoration: none; transition: color 0.2s ease; }
+.student-name.clickable:hover { color: var(--accent-color); }
+.student-stats-layout { display: flex; align-items: center; gap: 24px; margin-top: 16px; }
+.student-chart-container { width: 180px; height: 180px; flex-shrink: 0; }
+#student-stats-list { list-style: none; padding: 0; font-size: 1rem; flex-grow: 1; }
+#student-stats-list li { padding: 8px 0; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; }
+#student-stats-list li:last-child { border-bottom: none; }
+#student-stats-list strong { font-weight: 600; }
 
 @media (max-width: 600px) {
     body { padding: 10px; }
     header { flex-direction: column; gap: 15px; }
     .student-row { flex-direction: column; align-items: flex-start; gap: 10px; }
     .sheet-header { flex-direction: column; align-items: flex-start; gap: 8px; }
-    footer { flex-direction: column; gap: 10px; }
-    footer button { width: 100%; justify-content: center; }
-
-    /* Адаптация для модального окна статистики */
-    .student-stats-layout {
-        flex-direction: column;
-    }
+    .section-actions { flex-direction: column; gap: 10px; }
+    .section-actions button { width: 100%; justify-content: center; }
+    .student-stats-layout { flex-direction: column; }
 }
