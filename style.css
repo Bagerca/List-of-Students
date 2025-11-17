@@ -174,7 +174,7 @@ button.status-excused.active { background: var(--grey); }
     display: flex;
     flex-direction: column;
     position: relative;
-    min-height: 250px; /* Минимальная высота для единообразия */
+    min-height: 250px;
 }
 .day-card.day-off {
     opacity: 0.6;
@@ -217,14 +217,13 @@ button.status-excused.active { background: var(--grey); }
     cursor: pointer;
     opacity: 0;
     transition: opacity 0.2s;
-    display: flex; /* Используем flex для центрирования */
+    display: flex;
     align-items: center;
     justify-content: center;
 }
 .guest-mode .edit-schedule-btn { display: none !important; }
 body:not(.guest-mode) .day-card:hover .edit-schedule-btn { opacity: 1; }
 body:not(.guest-mode) .day-card.is-editing .edit-schedule-btn { display: none; }
-/* УБРАЛ ПРАВИЛО, КОТОРОЕ СКРЫВАЛО КНОПКУ РЕДАКТИРОВАНИЯ НА ВЫХОДНЫХ */
 
 .schedule-editor {
     display: none;
