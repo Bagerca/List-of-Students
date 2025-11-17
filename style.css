@@ -16,7 +16,7 @@
 }
 
 body.theme-dark {
-    --bg-color: #1819a;
+    --bg-color: #18191a; /* ИСПРАВЛЕНО */
     --card-bg-color: #242526;
     --primary-text-color: #e4e6eb;
     --secondary-text-color: #b0b3b8;
@@ -344,17 +344,17 @@ body.is-resizing {
 
 /* Общий стиль для выделения строки дежурного (для всех ролей) */
 .student-row.on-duty {
-    background-color: #d1e7fd;
+    background-color: rgba(13, 110, 253, 0.1); /* УЛУЧШЕНО: Полупрозрачный акцентный цвет */
     border-left: 4px solid var(--accent-color); 
     padding-left: 20px;
 }
 body.theme-dark .student-row.on-duty {
-    background-color: #2c3e50; 
+    background-color: rgba(35, 116, 225, 0.15); /* УЛУЧШЕНО: Полупрозрачный акцентный цвет для темной темы */
     border-left-color: var(--accent-color-hover);
 }
 .student-row.on-duty .student-name {
     color: var(--primary-text-color);
 }
 body.theme-dark .student-row.on-duty .student-name {
-    color: #e4e6eb;
+    color: var(--primary-text-color);
 }
