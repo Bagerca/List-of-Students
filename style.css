@@ -76,42 +76,54 @@ body.theme-dark .sheet-header { background-color: #3a3b3c; }
 body.theme-dark .student-row:hover { background-color: rgba(255,255,255,0.05); }
 .student-name { flex-grow: 1; font-size: 1rem; font-weight: 500; }
 .status-buttons { display: flex; gap: 8px; }
-.status-buttons button { width: 36px; height: 36px; border-radius: 8px; border: 1px solid var(--border-color); background-color: var(--card-bg-color); cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--secondary-text-color); transition: all 0.2s ease; }
-.status-buttons button:hover { border-color: var(--accent-color); color: var(--accent-color); }
-.status-buttons button.active { color: white; border: 1px solid transparent; }
-button.status-present.active { background-color: var(--green); border-color: var(--green); }
-button.status-late.active { background-color: var(--yellow); border-color: var(--yellow); color: #333; }
-button.status-absent.active { background-color: var(--red); border-color: var(--red); }
-button.status-sick.active { background-color: var(--blue); border-color: var(--blue); }
-button.status-excused.active { background-color: var(--grey); border-color: var(--grey); }
-.status-buttons button svg { width: 20px; height: 20px; }
 
-/* ===== НОВЫЕ СТИЛИ ДЛЯ ПОЛОВИНОК ===== */
-.status-buttons button.status-half-left,
-.status-buttons button.status-half-right {
-    color: white;
-    border-color: transparent;
-    background-size: 200% 100%;
-    transition: background-position 0.3s ease;
+.status-buttons button { 
+    width: 36px; height: 36px; border-radius: 8px; 
+    border: 1px solid var(--border-color); 
+    background-color: var(--card-bg-color); 
+    cursor: pointer; display: flex; align-items: center; justify-content: center; 
+    color: var(--secondary-text-color); 
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
 }
-.status-buttons button.status-half-left { background-position: left; }
-.status-buttons button.status-half-right { background-position: right; }
+.status-buttons button:hover { border-color: var(--accent-color); color: var(--accent-color); }
 
-.status-buttons .status-present.status-half-left { background-image: linear-gradient(to right, var(--green) 50%, var(--card-bg-color) 50%); }
-.status-buttons .status-present.status-half-right { background-image: linear-gradient(to left, var(--green) 50%, var(--card-bg-color) 50%); }
+/* SVG иконка должна быть поверх цветного слоя */
+.status-buttons button svg {
+    width: 20px;
+    height: 20px;
+    position: relative;
+    z-index: 1;
+}
 
-.status-buttons .status-late.status-half-left { background-image: linear-gradient(to right, var(--yellow) 50%, var(--card-bg-color) 50%); color: #333; }
-.status-buttons .status-late.status-half-right { background-image: linear-gradient(to left, var(--yellow) 50%, var(--card-bg-color) 50%); color: #333; }
+/* Убрал специфичное правило для .status-late, теперь все active белые */
+.status-buttons button.active { color: white; border-color: transparent; }
 
-.status-buttons .status-absent.status-half-left { background-image: linear-gradient(to right, var(--red) 50%, var(--card-bg-color) 50%); }
-.status-buttons .status-absent.status-half-right { background-image: linear-gradient(to left, var(--red) 50%, var(--card-bg-color) 50%); }
+button.status-present.active { background-color: var(--green); }
+button.status-late.active { background-color: var(--yellow); }
+button.status-absent.active { background-color: var(--red); }
+button.status-sick.active { background-color: var(--blue); }
+button.status-excused.active { background-color: var(--grey); }
 
-.status-buttons .status-sick.status-half-left { background-image: linear-gradient(to right, var(--blue) 50%, var(--card-bg-color) 50%); }
-.status-buttons .status-sick.status-half-right { background-image: linear-gradient(to left, var(--blue) 50%, var(--card-bg-color) 50%); }
+.status-buttons button.active-half::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    height: 100%;
+    width: 50%;
+}
+.status-buttons button.status-half-left::before { left: 0; }
+.status-buttons button.status-half-right::before { right: 0; }
 
-.status-buttons .status-excused.status-half-left { background-image: linear-gradient(to right, var(--grey) 50%, var(--card-bg-color) 50%); }
-.status-buttons .status-excused.status-half-right { background-image: linear-gradient(to left, var(--grey) 50%, var(--card-bg-color) 50%); }
+/* Убрал специфичное правило для .status-late, теперь все active-half белые */
+.status-buttons button.active-half { border-color: transparent; color: white; }
 
+.status-buttons .status-present.active-half::before { background-color: var(--green); }
+.status-buttons .status-late.active-half::before { background-color: var(--yellow); }
+.status-buttons .status-absent.active-half::before { background-color: var(--red); }
+.status-buttons .status-sick.active-half::before { background-color: var(--blue); }
+.status-buttons .status-excused.active-half::before { background-color: var(--grey); }
 
 .chart-section { margin-top: 24px; padding: 24px; background-color: var(--card-bg-color); border-radius: 12px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); }
 .chart-section h2 { margin-bottom: 16px; font-size: 1.5rem; }
