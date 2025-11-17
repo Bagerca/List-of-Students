@@ -2,6 +2,10 @@
 
 let currentDate = new Date().toISOString().split('T')[0];
 
+// ===== ИЗМЕНЕНИЕ ЗДЕСЬ: Модуль больше не хранит appData =====
+let getAppData; 
+let saveData;
+
 let datePicker, prevDayBtn, nextDayBtn, sheetDateDisplay, studentListContainer, 
     downloadBtn, copyBtn, statsContainer;
 
@@ -17,18 +21,19 @@ const statusIcons = {
     excused: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line></svg>`
 };
 
-function isSchoolDay(dateString, appData) {
+function isSchoolDay(dateString) {
+    const appData = getAppData();
     const day = new Date(dateString + 'T00:00:00').getDay();
-    const schedule = appData.scheduleData || {};
-    // День является учебным, если для него есть запись в расписании (не null)
-    return schedule[day] !== undefined && schedule[day] !== null;
+    const scheduleData = appData.scheduleData || {};
+    return scheduleData[day] !== undefined && scheduleData[day] !== null;
 }
 
 function formatDate(d) {
     return new Date(d + 'T00:00:00').toLocaleDateString('ru-RU', { year: 'numeric', month: 'long', day: 'numeric' });
 }
 
-function updateStats(appData) {
+function updateStats() {
+    const appData = getAppData();
     const dayData = appData.attendanceData[currentDate] || {};
     const total = appData.students.length;
     let presentCount = 0, lateCount = 0, absentCount = 0;
@@ -50,10 +55,11 @@ function updateStats(appData) {
     statsContainer.innerHTML = `Присутствует: <strong>${Number(presentCount.toFixed(1))}/${total}</strong> &nbsp;·&nbsp; Опоздало: <strong>${Number(lateCount.toFixed(1))}</strong> &nbsp;·&nbsp; Отсутствует: <strong>${Number(absentCount.toFixed(1))}</strong>`;
 }
 
-export function renderJournal(appData) {
+export function renderJournal() {
+    const appData = getAppData();
     sheetDateDisplay.textContent = formatDate(currentDate);
 
-    if (isSchoolDay(currentDate, appData)) {
+    if (isSchoolDay(currentDate)) {
         statsContainer.style.display = '';
         copyBtn.disabled = false;
         downloadBtn.disabled = false;
@@ -86,7 +92,7 @@ export function renderJournal(appData) {
                 studentListContainer.appendChild(row);
             });
         }
-        updateStats(appData);
+        updateStats();
     } else {
         statsContainer.style.display = 'none';
         copyBtn.disabled = true;
@@ -100,7 +106,8 @@ export function renderJournal(appData) {
     }
 }
 
-function handleStatusClick(e, appData, saveData) {
+function handleStatusClick(e) {
+    const appData = getAppData();
     const button = e.target.closest('button[data-status]');
     if (!button) return;
     
@@ -134,15 +141,18 @@ function handleStatusClick(e, appData, saveData) {
     saveData();
 }
 
-function changeDate(offset, appData) {
+function changeDate(offset) {
     const currentDateObj = new Date(currentDate + 'T00:00:00');
     currentDateObj.setDate(currentDateObj.getDate() + offset);
     currentDate = currentDateObj.toISOString().split('T')[0];
     datePicker.value = currentDate;
-    renderJournal(appData);
+    renderJournal();
 }
 
-export function initJournal(appData, saveData) {
+export function initJournal(_getAppData, _saveData) {
+    getAppData = _getAppData;
+    saveData = _saveData;
+
     datePicker = document.getElementById('date-picker');
     prevDayBtn = document.getElementById('prev-day-btn');
     nextDayBtn = document.getElementById('next-day-btn');
@@ -156,17 +166,18 @@ export function initJournal(appData, saveData) {
 
     datePicker.addEventListener('change', e => { 
         currentDate = e.target.value; 
-        renderJournal(appData);
+        renderJournal();
     });
-    prevDayBtn.addEventListener('click', () => changeDate(-1, appData));
-    nextDayBtn.addEventListener('click', () => changeDate(1, appData));
+    prevDayBtn.addEventListener('click', () => changeDate(-1));
+    nextDayBtn.addEventListener('click', () => changeDate(1));
 
     studentListContainer.addEventListener('click', e => {
         if (document.body.classList.contains('guest-mode')) return;
-        handleStatusClick(e, appData, saveData);
+        handleStatusClick(e);
     });
     
     copyBtn.addEventListener('click', () => {
+        const appData = getAppData();
         const dayData = appData.attendanceData[currentDate] || {};
         let reportText = `Отчет о посещаемости за ${formatDate(currentDate)}:\n\n`;
         appData.students.forEach(name => {
