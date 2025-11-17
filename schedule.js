@@ -1,7 +1,7 @@
 // schedule.js
 
 let currentWeekStart;
-let getAppData, saveData;
+let getAppData, saveData, fullRender;
 
 let scheduleContainer, weekDisplay, prevWeekBtn, nextWeekBtn;
 
@@ -85,9 +85,10 @@ function changeWeek(offset) {
     renderSchedule();
 }
 
-export function initSchedule(_getAppData, _saveData) {
+export function initSchedule(_getAppData, _saveData, _fullRender) {
     getAppData = _getAppData;
     saveData = _saveData;
+    fullRender = _fullRender;
 
     scheduleContainer = document.getElementById('schedule-container');
     weekDisplay = document.getElementById('week-display');
