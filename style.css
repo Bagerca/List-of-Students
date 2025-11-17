@@ -43,34 +43,6 @@ header h1 { font-size: 1.8rem; font-weight: 700; }
 #settings-btn:hover, #theme-toggle-btn:hover { background-color: var(--border-color); color: var(--primary-text-color); }
 #theme-toggle-btn svg { width: 22px; height: 22px; }
 
-/* ===== НОВЫЕ СТИЛИ ДЛЯ РАСПИСАНИЯ В ШАПКЕ ===== */
-#schedule-display {
-    display: flex;
-    gap: 4px;
-    background-color: var(--bg-color);
-    padding: 4px;
-    border-radius: 8px;
-}
-#schedule-display span {
-    width: 28px;
-    height: 28px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 6px;
-    font-size: 0.8rem;
-    font-weight: 600;
-    color: var(--secondary-text-color);
-    opacity: 0.6;
-    transition: all 0.2s ease;
-}
-#schedule-display span.active-day {
-    background-color: var(--accent-color);
-    color: white;
-    opacity: 1;
-}
-/* ===== КОНЕЦ НОВЫХ СТИЛЕЙ ===== */
-
 .date-navigator { display: flex; align-items: center; }
 .date-navigator button {
     background-color: var(--card-bg-color);
@@ -150,11 +122,6 @@ button.status-excused.active { background: var(--grey); }
 .status-buttons .status-sick.active-half::before { background-color: var(--blue); }
 .status-buttons .status-excused.active-half::before { background-color: var(--grey); }
 
-#schedule-editor { display: flex; flex-wrap: wrap; gap: 15px; margin-top: 8px; }
-#schedule-editor label { display: flex; align-items: center; gap: 6px; cursor: pointer; }
-#schedule-editor input { width: 1.2em; height: 1.2em; }
-#save-settings-btn { width: 100%; justify-content: center; }
-
 #student-list-container .day-off-message { padding: 40px 20px; text-align: center; color: var(--secondary-text-color); }
 #student-list-container .day-off-message .emoji { font-size: 3rem; display: block; margin-bottom: 12px; }
 
@@ -172,6 +139,115 @@ button.status-excused.active { background: var(--grey); }
 .secondary-button { background-color: var(--card-bg-color); color: var(--primary-text-color); border: 1px solid var(--border-color); }
 .secondary-button:hover { background-color: var(--bg-color); }
 
+/* ===== СТИЛИ ДЛЯ НОВОЙ СЕКЦИИ РАСПИСАНИЯ ===== */
+.schedule-section { margin-top: 24px; }
+.week-navigator {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 20px;
+    background-color: var(--card-bg-color);
+    padding: 12px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+.week-navigator h2 { font-size: 1.2rem; margin: 0 20px; }
+.week-navigator button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--secondary-text-color);
+    padding: 8px;
+    border-radius: 50%;
+}
+.week-navigator button:hover { background-color: var(--bg-color); }
+
+.week-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+}
+.day-card {
+    background-color: var(--card-bg-color);
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+.day-card.day-off {
+    opacity: 0.6;
+    background-color: var(--bg-color);
+}
+.day-card-header {
+    margin-bottom: 12px;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 12px;
+}
+.day-card-header h3 { font-size: 1rem; }
+.day-card-header .date { font-size: 0.8rem; color: var(--secondary-text-color); }
+.day-card ul { list-style: none; padding-left: 20px; }
+.day-card li { position: relative; margin-bottom: 4px; }
+.day-card li::before {
+    content: '●';
+    position: absolute;
+    left: -18px;
+    color: var(--accent-color);
+    font-size: 0.8rem;
+}
+.homework {
+    margin-top: auto;
+    padding-top: 12px;
+    border-top: 1px solid var(--border-color);
+}
+.homework h4 { font-size: 0.8rem; color: var(--secondary-text-color); margin-bottom: 4px; }
+.homework-content { white-space: pre-wrap; word-wrap: break-word; }
+
+/* Режим редактирования расписания */
+.edit-schedule-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: var(--bg-color);
+    border: none;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.2s;
+    display: none; /* Скрыто для не-админов */
+}
+.guest-mode .edit-schedule-btn { display: none !important; }
+body:not(.guest-mode) .day-card:hover .edit-schedule-btn { opacity: 1; }
+body:not(.guest-mode) .day-card.is-editing .edit-schedule-btn { display: none; }
+.day-card.day-off .edit-schedule-btn { display: none !important; }
+
+.schedule-editor {
+    display: none; /* Скрыты по умолчанию */
+    width: 100%;
+    padding: 8px;
+    border-radius: 6px;
+    border: 1px solid var(--accent-color);
+    background-color: var(--bg-color);
+    color: var(--primary-text-color);
+    font-family: var(--font-family);
+    resize: vertical;
+    min-height: 100px;
+}
+.day-card.is-editing .schedule-editor { display: block; }
+.day-card.is-editing .lessons-list,
+.day-card.is-editing .homework-content { display: none; }
+
+.edit-controls {
+    display: none; /* Скрыты по умолчанию */
+    gap: 10px;
+    margin-top: 10px;
+}
+.day-card.is-editing .edit-controls { display: flex; }
+/* ===== КОНЕЦ СТИЛЕЙ ДЛЯ РАСПИСАНИЯ ===== */
+
 .modal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); justify-content: center; align-items: center; opacity: 0; transition: opacity 0.3s ease; }
 .modal.show { display: flex; opacity: 1; }
 .modal-content { background-color: var(--card-bg-color); padding: 24px; border-radius: 12px; width: 90%; max-width: 500px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); position: relative; transform: scale(0.95); transition: transform 0.3s ease; }
@@ -185,6 +261,8 @@ button.status-excused.active { background: var(--grey); }
 .modal-content h3 { margin-bottom: 4px; }
 .data-buttons { display: flex; gap: 12px; margin-top: 16px; }
 .data-buttons button { flex-grow: 1; justify-content: center; }
+
+#save-students-btn { width: 100%; justify-content: center; }
 
 .code-editor { display: flex; background-color: #282c34; border: 1px solid #444; border-radius: 8px; margin-bottom: 16px; font-family: var(--font-mono); }
 .line-numbers { padding: 12px 8px 12px 12px; color: #6e7681; font-size: 1rem; line-height: 1.5; text-align: right; border-right: 1px solid #444; user-select: none; }
@@ -215,4 +293,5 @@ button.status-excused.active { background: var(--grey); }
     .section-actions { flex-direction: column; gap: 10px; }
     .section-actions button { width: 100%; justify-content: center; }
     .student-stats-layout { flex-direction: column; }
+    .week-grid { grid-template-columns: 1fr; }
 }
