@@ -80,7 +80,7 @@ body.theme-dark .student-row:hover { background-color: rgba(255,255,255,0.05); }
 .status-buttons button { 
     width: 36px; height: 36px; border-radius: 8px; 
     border: 1px solid var(--border-color); 
-    background: var(--card-bg-color);
+    background-color: var(--card-bg-color); 
     cursor: pointer; display: flex; align-items: center; justify-content: center; 
     color: var(--secondary-text-color); 
     transition: all 0.2s ease;
@@ -93,19 +93,18 @@ body.theme-dark .student-row:hover { background-color: rgba(255,255,255,0.05); }
 .status-buttons button svg {
     width: 20px;
     height: 20px;
-    /* ===== ИСПРАВЛЕНИЕ ЗДЕСЬ ===== */
     position: relative;
     z-index: 1;
 }
 
+/* Убрал специфичное правило для .status-late, теперь все active белые */
 .status-buttons button.active { color: white; border-color: transparent; }
-.status-buttons .status-late.active { color: #333; }
 
-button.status-present.active { background: var(--green); }
-button.status-late.active { background: var(--yellow); }
-button.status-absent.active { background: var(--red); }
-button.status-sick.active { background: var(--blue); }
-button.status-excused.active { background: var(--grey); }
+button.status-present.active { background-color: var(--green); }
+button.status-late.active { background-color: var(--yellow); }
+button.status-absent.active { background-color: var(--red); }
+button.status-sick.active { background-color: var(--blue); }
+button.status-excused.active { background-color: var(--grey); }
 
 .status-buttons button.active-half::before {
     content: '';
@@ -117,8 +116,8 @@ button.status-excused.active { background: var(--grey); }
 .status-buttons button.status-half-left::before { left: 0; }
 .status-buttons button.status-half-right::before { right: 0; }
 
+/* Убрал специфичное правило для .status-late, теперь все active-half белые */
 .status-buttons button.active-half { border-color: transparent; color: white; }
-.status-buttons .status-late.active-half { color: #333; }
 
 .status-buttons .status-present.active-half::before { background-color: var(--green); }
 .status-buttons .status-late.active-half::before { background-color: var(--yellow); }
