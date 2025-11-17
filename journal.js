@@ -158,7 +158,7 @@ export function initJournal(_getAppData, _saveData, _fullRender) {
     nextDayBtn.addEventListener('click', () => changeDate(1));
 
     studentListContainer.addEventListener('click', e => {
-        if (document.body.classList.contains('guest-mode')) return;
+        if (document.body.classList.contains('guest-mode') || e.target.closest('.student-name')) return;
         handleStatusClick(e);
     });
     
