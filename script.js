@@ -290,32 +290,23 @@ function handleStatusClick(e) {
 
     let currentStatus = appData.attendanceData[currentDate][name];
     
-    // State 0: Nothing is active -> Set a single status
-    if (!currentStatus) {
-        appData.attendanceData[currentDate][name] = clickedStatus;
-    } 
-    // State 1: A single status is active
-    else if (typeof currentStatus === 'string') {
+    if (typeof currentStatus === 'string') {
         if (currentStatus === clickedStatus) {
-            // Clicked the same button again -> Clear status
             delete appData.attendanceData[currentDate][name];
         } else {
-            // Clicked a different button -> Create a pair
             appData.attendanceData[currentDate][name] = [currentStatus, clickedStatus];
         }
-    } 
-    // State 2: A pair of statuses is active
-    else if (Array.isArray(currentStatus)) {
+    } else if (Array.isArray(currentStatus)) {
         const statusIndex = currentStatus.indexOf(clickedStatus);
         if (statusIndex > -1) {
-            // Clicked one of the halves -> Remove it, the other becomes full
             currentStatus.splice(statusIndex, 1);
             appData.attendanceData[currentDate][name] = currentStatus[0];
         } else {
-            // Clicked a new button while a pair is active -> Replace the second half
             currentStatus[1] = clickedStatus;
             appData.attendanceData[currentDate][name] = currentStatus;
         }
+    } else {
+        appData.attendanceData[currentDate][name] = clickedStatus;
     }
 
     saveData();
