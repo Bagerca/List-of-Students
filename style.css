@@ -76,6 +76,7 @@ body.theme-dark .sheet-header { background-color: #3a3b3c; }
 body.theme-dark .student-row:hover { background-color: rgba(255,255,255,0.05); }
 .student-name { flex-grow: 1; font-size: 1rem; font-weight: 500; }
 .status-buttons { display: flex; gap: 8px; }
+
 .status-buttons button { 
     width: 36px; height: 36px; border-radius: 8px; 
     border: 1px solid var(--border-color); 
@@ -103,23 +104,25 @@ button.status-excused.active { background-color: var(--grey); border-color: var(
     border-color: transparent;
     transition: background-position 0.3s ease;
 }
+
 .status-buttons button.status-half-left { background-position: left; }
 .status-buttons button.status-half-right { background-position: right; }
 
 .status-buttons .status-present.status-half-left, 
-.status-buttons .status-present.status-half-right { background-image: linear-gradient(to right, var(--green) 50%, var(--card-bg-color) 50%); }
+.status-buttons .status-present.status-half-right { background-image: linear-gradient(to right, var(--green) 50%, var(--card-bg-color) 50.5%); }
 
 .status-buttons .status-late.status-half-left,
-.status-buttons .status-late.status-half-right { background-image: linear-gradient(to right, var(--yellow) 50%, var(--card-bg-color) 50%); }
+.status-buttons .status-late.status-half-right { background-image: linear-gradient(to right, var(--yellow) 50%, var(--card-bg-color) 50.5%); }
 
 .status-buttons .status-absent.status-half-left,
-.status-buttons .status-absent.status-half-right { background-image: linear-gradient(to right, var(--red) 50%, var(--card-bg-color) 50%); }
+.status-buttons .status-absent.status-half-right { background-image: linear-gradient(to right, var(--red) 50%, var(--card-bg-color) 50.5%); }
 
 .status-buttons .status-sick.status-half-left,
-.status-buttons .status-sick.status-half-right { background-image: linear-gradient(to right, var(--blue) 50%, var(--card-bg-color) 50%); }
+.status-buttons .status-sick.status-half-right { background-image: linear-gradient(to right, var(--blue) 50%, var(--card-bg-color) 50.5%); }
 
 .status-buttons .status-excused.status-half-left,
-.status-buttons .status-excused.status-half-right { background-image: linear-gradient(to right, var(--grey) 50%, var(--card-bg-color) 50%); }
+.status-buttons .status-excused.status-half-right { background-image: linear-gradient(to right, var(--grey) 50%, var(--card-bg-color) 50.5%); }
+
 
 .chart-section { margin-top: 24px; padding: 24px; background-color: var(--card-bg-color); border-radius: 12px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); }
 .chart-section h2 { margin-bottom: 16px; font-size: 1.5rem; }
