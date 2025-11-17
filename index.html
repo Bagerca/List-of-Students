@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Журнал посещаемости</title>
     
-    <link rel="preconnect" href="https.googleapis.com">
-    <link rel="preconnect" href="https.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Code+Pro:wght@400;500&display=swap" rel="stylesheet">
     
     <link rel="stylesheet" href="style.css">
@@ -16,7 +16,6 @@
 </head>
 <body>
     <div class="container">
-        <!-- ... остальной код body без изменений ... -->
         <header>
             <h1>Журнал посещаемости</h1>
             <div class="header-controls">
@@ -35,6 +34,7 @@
                 </button>
             </div>
         </header>
+
         <main id="attendance-sheet">
             <div class="sheet-header">
                 <span id="sheet-date-display"></span>
@@ -42,6 +42,18 @@
             </div>
             <div id="student-list-container"></div>
         </main>
+
+        <div class="section-actions">
+            <button id="copy-btn" class="secondary-button">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                <span class="btn-text">Копировать отчет</span>
+            </button>
+            <button id="download-btn" class="primary-button">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                <span>Скачать картинку</span>
+            </button>
+        </div>
+
         <section class="chart-section">
             <h2>Аналитика посещаемости</h2>
             <div class="chart-controls">
@@ -51,24 +63,42 @@
             <div class="chart-container">
                 <canvas id="attendance-chart"></canvas>
             </div>
+            <div class="section-actions">
+                <button id="download-main-chart-btn" class="primary-button">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                    <span>Скачать диаграмму</span>
+                </button>
+            </div>
         </section>
-        <footer>
-            <button id="copy-btn" class="secondary-button">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
-                <span class="btn-text">Копировать отчет</span>
-            </button>
-            <button id="download-btn" class="primary-button">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                <span>Скачать картинку</span>
-            </button>
-        </footer>
     </div>
 
     <div id="settings-modal" class="modal">
-        <!-- ... код модального окна настроек ... -->
+        <div class="modal-content">
+            <button class="close-btn">&times;</button>
+            <h2>Настройки и данные</h2>
+            <p>Управляйте списком студентов и резервными копиями данных.</p>
+            
+            <div class="section">
+                <h3>Список студентов</h3>
+                <div class="code-editor">
+                    <div class="line-numbers"></div>
+                    <textarea id="student-list-editor" rows="10" placeholder="Каждый студент с новой строки..."></textarea>
+                </div>
+                <button id="save-students-btn" class="primary-button">Сохранить список</button>
+            </div>
+
+            <div class="section">
+                <h3>Управление данными</h3>
+                <p>Сохраните все данные в файл или загрузите из ранее сохраненного файла.</p>
+                <div class="data-buttons">
+                    <button id="export-data-btn" class="secondary-button">Экспорт в .json</button>
+                    <button id="import-data-btn" class="secondary-button">Импорт из .json</button>
+                    <input type="file" id="import-file-input" accept=".json" style="display: none;">
+                </div>
+            </div>
+        </div>
     </div>
 
-    <!-- ===== НОВОЕ МОДАЛЬНОЕ ОКНО ДЛЯ СТАТИСТИКИ СТУДЕНТА ===== -->
     <div id="student-stats-modal" class="modal">
         <div class="modal-content">
             <button class="close-btn">&times;</button>
@@ -97,7 +127,6 @@
             </div>
         </div>
     </div>
-    <!-- ===== КОНЕЦ НОВОГО МОДАЛЬНОГО ОКНА ===== -->
 
     <script type="module" src="script.js"></script>
 </body>
