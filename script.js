@@ -47,7 +47,7 @@ let datePicker, prevDayBtn, nextDayBtn, sheetDateDisplay, studentListContainer,
     studentStatsList, studentChartCanvas, statsStartDate, statsEndDate, 
     downloadStudentChartBtn, studentStatsModalCloseBtn, downloadMainChartBtn,
     scheduleContainer, editScheduleBtn, scheduleModal, scheduleModalCloseBtn,
-    scheduleEditorContainer, saveScheduleBtn,
+    saveScheduleBtn,
     editDutyBtn, dutyModal, dutyModalDate, dutyStudentList, saveDutyAssignmentBtn, dutyModalCloseBtn;
 
 // --- 4. ФУНКЦИИ ПРИЛОЖЕНИЯ ---
@@ -359,8 +359,11 @@ function renderSchedule() {
 
 function renderScheduleEditor() {
     const editorContainer = document.getElementById('schedule-editor-container');
-    if (!editorContainer) return;
-
+    if (!editorContainer) {
+        console.error("Schedule editor container not found!");
+        return;
+    }
+    
     const schedule = appData.schedule || {};
     editorContainer.innerHTML = '';
 
@@ -399,7 +402,7 @@ function createLessonEditorRow(lesson = {}) {
 function saveScheduleChanges() {
     const scheduleEditorContainer = document.getElementById('schedule-editor-container');
     if (!scheduleEditorContainer) return;
-    
+
     const newSchedule = {};
     const daySections = scheduleEditorContainer.querySelectorAll('.editor-day-section');
     
@@ -430,7 +433,7 @@ function saveScheduleChanges() {
         set(ref(database, 'journalData/schedule'), appData.schedule);
     }
     
-    scheduleModal.classList.remove('show');
+    if (scheduleModal) scheduleModal.classList.remove('show');
 }
 
 function openDutyModal() {
@@ -661,18 +664,17 @@ function setupEventListeners() {
     if (isAdmin || isScheduleEditor) {
         if(editScheduleBtn) editScheduleBtn.onclick = () => {
             renderScheduleEditor();
-            scheduleModal.classList.add('show');
+            if (scheduleModal) scheduleModal.classList.add('show');
         };
         if(scheduleModalCloseBtn) scheduleModalCloseBtn.onclick = () => scheduleModal.classList.remove('show');
         if(scheduleModal) scheduleModal.onclick = (e) => { if (e.target === scheduleModal) scheduleModal.classList.remove('show'); };
         if(saveScheduleBtn) saveScheduleBtn.onclick = saveScheduleChanges;
 
-        const scheduleEditorContainer = document.getElementById('schedule-editor-container');
-        if(scheduleEditorContainer) scheduleEditorContainer.addEventListener('click', e => {
+        if(scheduleModal) scheduleModal.addEventListener('click', e => {
             if (e.target.classList.contains('add-lesson-btn')) {
                 const day = e.target.dataset.day;
-                const list = scheduleEditorContainer.querySelector(`.editor-day-section[data-day="${day}"] .lessons-list`);
-                list.insertAdjacentHTML('beforeend', createLessonEditorRow());
+                const list = scheduleModal.querySelector(`.editor-day-section[data-day="${day}"] .lessons-list`);
+                if(list) list.insertAdjacentHTML('beforeend', createLessonEditorRow());
             }
             if (e.target.classList.contains('delete-lesson-btn')) {
                 e.target.closest('.lesson-editor-row').remove();
