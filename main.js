@@ -3,7 +3,7 @@ import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebase
 
 import { initJournal, renderJournal, showDayOffMessageInJournal } from './journal.js';
 import { initSchedule, renderSchedule } from './schedule.js';
-import { initUI, renderChart } from './ui.js';
+import { initUI, renderChart, setChartDateRange } from './ui.js';
 
 const firebaseConfig = {
     apiKey: "AIzaSyAdEYhK5jZn1DjEpQlwFr1WBS-k6iJZdyQ",
@@ -42,7 +42,6 @@ function isSchoolDay(dateString) {
 
 function fullRender() {
     const currentDate = journalAPI.getCurrentDate();
-    const currentWeekStart = scheduleAPI.getCurrentWeekStart();
     
     if (isSchoolDay(currentDate)) {
         renderJournal();
@@ -64,7 +63,7 @@ function init() {
     }
 
     journalAPI = initJournal(getAppData, saveData, fullRender);
-    scheduleAPI = initSchedule(getAppData, saveData);
+    scheduleAPI = initSchedule(getAppData, saveData, fullRender);
     initUI(getAppData, saveData, isAdmin);
 
     const appDataRef = ref(database, 'journalData');
@@ -78,6 +77,17 @@ function init() {
         if (!snapshot.val() && isAdmin) {
             saveData();
         }
+
+        // ===== ИСПРАВЛЕНИЕ ЗДЕСЬ: Устанавливаем даты для графика =====
+        const allDates = Object.keys(appData.attendanceData || {}).sort();
+        const today = journalAPI.getCurrentDate();
+        if (allDates.length > 0) {
+            const endDate = allDates[allDates.length - 1] > today ? allDates[allDates.length - 1] : today;
+            setChartDateRange(allDates[0], endDate);
+        } else {
+            setChartDateRange(today, today);
+        }
+        // ===== КОНЕЦ ИСПРАВЛЕНИЯ =====
 
         fullRender();
     });
