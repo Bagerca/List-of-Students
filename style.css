@@ -139,7 +139,6 @@ button.status-excused.active { background: var(--grey); }
 .secondary-button { background-color: var(--card-bg-color); color: var(--primary-text-color); border: 1px solid var(--border-color); }
 .secondary-button:hover { background-color: var(--bg-color); }
 
-/* ===== СТИЛИ ДЛЯ НОВОЙ СЕКЦИИ РАСПИСАНИЯ ===== */
 .schedule-section { margin-top: 24px; }
 .week-navigator {
     display: flex;
@@ -175,10 +174,10 @@ button.status-excused.active { background: var(--grey); }
     display: flex;
     flex-direction: column;
     position: relative;
+    min-height: 250px; /* Минимальная высота для единообразия */
 }
 .day-card.day-off {
     opacity: 0.6;
-    background-color: var(--bg-color);
 }
 .day-card-header {
     margin-bottom: 12px;
@@ -202,9 +201,10 @@ button.status-excused.active { background: var(--grey); }
     border-top: 1px solid var(--border-color);
 }
 .homework h4 { font-size: 0.8rem; color: var(--secondary-text-color); margin-bottom: 4px; }
-.homework-content { white-space: pre-wrap; word-wrap: break-word; }
+.homework-content, .day-off-message { white-space: pre-wrap; word-wrap: break-word; }
+.day-off-message { text-align: center; margin: auto; }
+.day-off-message .emoji { font-size: 2rem; }
 
-/* Режим редактирования расписания */
 .edit-schedule-btn {
     position: absolute;
     top: 8px;
@@ -217,15 +217,17 @@ button.status-excused.active { background: var(--grey); }
     cursor: pointer;
     opacity: 0;
     transition: opacity 0.2s;
-    display: none; /* Скрыто для не-админов */
+    display: flex; /* Используем flex для центрирования */
+    align-items: center;
+    justify-content: center;
 }
 .guest-mode .edit-schedule-btn { display: none !important; }
 body:not(.guest-mode) .day-card:hover .edit-schedule-btn { opacity: 1; }
 body:not(.guest-mode) .day-card.is-editing .edit-schedule-btn { display: none; }
-.day-card.day-off .edit-schedule-btn { display: none !important; }
+/* УБРАЛ ПРАВИЛО, КОТОРОЕ СКРЫВАЛО КНОПКУ РЕДАКТИРОВАНИЯ НА ВЫХОДНЫХ */
 
 .schedule-editor {
-    display: none; /* Скрыты по умолчанию */
+    display: none;
     width: 100%;
     padding: 8px;
     border-radius: 6px;
@@ -238,15 +240,15 @@ body:not(.guest-mode) .day-card.is-editing .edit-schedule-btn { display: none; }
 }
 .day-card.is-editing .schedule-editor { display: block; }
 .day-card.is-editing .lessons-list,
-.day-card.is-editing .homework-content { display: none; }
+.day-card.is-editing .homework-content,
+.day-card.is-editing .day-off-message { display: none; }
 
 .edit-controls {
-    display: none; /* Скрыты по умолчанию */
+    display: none;
     gap: 10px;
     margin-top: 10px;
 }
 .day-card.is-editing .edit-controls { display: flex; }
-/* ===== КОНЕЦ СТИЛЕЙ ДЛЯ РАСПИСАНИЯ ===== */
 
 .modal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); justify-content: center; align-items: center; opacity: 0; transition: opacity 0.3s ease; }
 .modal.show { display: flex; opacity: 1; }
